@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 
@@ -28,27 +29,38 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+	### Subscribers
 
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+	# all waypoints of the track before and after the car
+	self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        self.traffic_waypoint_sub = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        self.obstacle_waypoint_sub = rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
 
-
+	### Publishers
+	# publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
+	### Member variables
+
         # TODO: Add other member variables you need below
-	current_pose = None
+	final_waypoints = None
+
         rospy.spin()
 
     def pose_cb(self, msg):
+
         # TODO: Implement
 	self.current_pose = msg
         pass
 
     def waypoints_cb(self, waypoints):
-        self.ref_waypoints = waypoints.waypoints
+
+        self.base_waypoints = waypoints.waypoints
         # we only need the message once, unsubscribe after first receive
         self.base_waypoints_sub.unregister()
+	pass
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
