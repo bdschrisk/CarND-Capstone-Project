@@ -57,6 +57,7 @@ class DBWNode(object):
         # self.controller = TwistController(<Arguments you wish to provide>)
 
         # TODO: Subscribe to all the topics you need to
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
 
         self.loop()
 
@@ -73,6 +74,10 @@ class DBWNode(object):
             # if <dbw is enabled>:
             #   self.publish(throttle, brake, steer)
             rate.sleep()
+    
+    def dbw_enabled_cb(self, msg):
+        self.dbw_enabled = msg.data
+        # TODO: reset steering and throttle PID controllers accordingly
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
