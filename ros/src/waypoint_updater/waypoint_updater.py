@@ -28,26 +28,26 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
-
-	### Subscribers
+		
+		### Subscribers
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-	# all waypoints of the track before and after the car
-	self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+		# all waypoints of the track before and after the car
+		self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
-
-	### Publishers
-	# publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
+		
+		### Publishers
+		# publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-
-	### Member variables
+		
+		### Member variables
 
         # TODO: Add other member variables you need below
-	final_waypoints = None
-	current_pose = None
-	base_waypoints = None
+		final_waypoints = None
+		current_pose = None
+		base_waypoints = None
 	
         rospy.spin()
 
@@ -60,6 +60,8 @@ class WaypointUpdater(object):
 		closest_dist = sys.maxsize
 		closest_wp = None
 		
+		# TODO: check based on orientation
+		
 		#iterate and find the closest node
         for i in range(len(self.base_waypoints)):
 	    	wp_diff = (self.base_waypoints[i].pose.pose.position.x-cur_x) + (self.base_waypoints[i].pose.pose.position.y-cur_y)
@@ -69,15 +71,34 @@ class WaypointUpdater(object):
 				
 		return i
 
+
+	def get_final_wp(self, cl_wp):
+		
+		lane = Lane()
+		lane.header = self.base_waypoints.header
+		
+		final_wp = []
+		i = 0
+		while(i<LOOKAHEAD_WPS):
+			pos_ = (cl_wp+i)%(len(self.base_waypoints))
+			final_wp.append(self.base_waypoints[pos_])
+			i++
+		
+		lane.waypoints = final_wp
+		
+		return lane
+			
+		
     def pose_cb(self, msg):
 
         # TODO: Implement
-	# obtain the current pose
-	self.current_pose = msg
+		# obtain the current pose
+		self.current_pose = msg
 	
-	# from the current pose and the base_waypoints extract the closest node
-	cl_wp = closest_node(self)
-	
+		# from the current pose and the base_waypoints extract the closest node
+		cl_wp = closest_node(self)
+		self.final_waypoints = get_final_wp(self, cl_wp)
+		self.final_waypoints_pub.publish(self.final_waypoints)
         pass
 
     def waypoints_cb(self, waypoints):
@@ -85,7 +106,7 @@ class WaypointUpdater(object):
         self.base_waypoints = waypoints.waypoints
         # we only need the message once, unsubscribe after first receive
         self.base_waypoints_sub.unregister()
-	pass
+		pass
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
