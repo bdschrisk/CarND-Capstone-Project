@@ -63,7 +63,7 @@
 ### subscriber 
 - [/current_pose](./msg.md#current_pose)
 - [/base_waypoints](./msg.md#base_waypoints)
-- **ToDo** [/vehicle/obtacle](./msg.md#obtacle)
+- **ToDo** [/vehicle/obtacle](./msg.md#obstacle)
 - **ToDo** [/traffic_waypoint](./msg.md#traffic_waypoint)
 
 ### publisher
