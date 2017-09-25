@@ -31,12 +31,12 @@ class WaypointUpdater(object):
 
 	### Subscribers
 
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 	# all waypoints of the track before and after the car
 	self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-        self.traffic_waypoint_sub = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-        self.obstacle_waypoint_sub = rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
 
 	### Publishers
 	# publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
@@ -46,13 +46,38 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
 	final_waypoints = None
-
+	current_pose = None
+	base_waypoints = None
+	
         rospy.spin()
+
+    def closest_node(self):
+	
+		# current position
+		cur_x = self.current_pose.pose.position.x
+		cur_y = self.current_pose.pose.position.y
+		
+		closest_dist = sys.maxsize
+		closest_wp = None
+		
+		#iterate and find the closest node
+        for i in range(len(self.base_waypoints)):
+	    	wp_diff = (self.base_waypoints[i].pose.pose.position.x-cur_x) + (self.base_waypoints[i].pose.pose.position.y-cur_y)
+			if (wp_diff < closest_dist):
+				closest_dist = wp_diff
+				closest_wp = i
+				
+		return i
 
     def pose_cb(self, msg):
 
         # TODO: Implement
+	# obtain the current pose
 	self.current_pose = msg
+	
+	# from the current pose and the base_waypoints extract the closest node
+	cl_wp = closest_node(self)
+	
         pass
 
     def waypoints_cb(self, waypoints):
