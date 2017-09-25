@@ -1,5 +1,5 @@
 
-# topic:/vehicle/dbw_enabled 
+# topic:/vehicle/dbw_enabled
 ## std_msgs/Bool
 
 # topic:/traffic_waypoint 
@@ -54,7 +54,7 @@ styx_msgs/Waypoint[] waypoints
         float64 z
 ~~~
 
-# topic:/vehicle/traffic_lights           
+# topic:/vehicle/traffic_lights
 ## styx_msgs/TrafficLightArray
 ~~~
 std_msgs/Header header
@@ -89,7 +89,7 @@ styx_msgs/TrafficLight[] lights
 ~~~
 
 # topic:/current_velocity
-# topic:/twist_cmd 
+# topic:/twist_cmd
 
 ## geometry_msgs/TwistStamped
 ~~~
@@ -108,7 +108,7 @@ geometry_msgs/Twist twist
     float64 z
 ~~~
 
-# topic:/current_pose 
+# topic:/current_pose
 # topic:/vehicle/obstacle
 
 ## geometry_msgs/PoseStamped 
@@ -196,7 +196,8 @@ geometry_msgs/TransformStamped[] transforms
       float64 w
 ~~~
 
-# topic:/vehicle/steering_cmd 
+<a name="test"></a>
+# topic:/vehicle/steering_cmd
 ## dbw_mkz_msgs/SteeringCmd
 
 ~~~
@@ -209,7 +210,7 @@ bool quiet
 uint8 count
 ~~~
 
-# topic: /vehicle/brake_cmd 
+# topic:/vehicle/brake_cmd
 ## dbw_mkz_msgsBrakeCmd
 ~~~
 uint8 CMD_NONE=0
@@ -241,7 +242,7 @@ bool ignore
 uint8 count
 ~~~
 
-# /vehicle/steering_report 
+# /vehicle/steering_report
 ## dbw_mkz_msgs/SteeringReport
 ~~~
 std_msgs/Header header
