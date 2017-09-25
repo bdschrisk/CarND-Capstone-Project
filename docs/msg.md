@@ -1,20 +1,23 @@
 
+<a name="dbw_enabled"></a>
 # topic:/vehicle/dbw_enabled
 ## std_msgs/Bool
 
+<a name="traffic_waypoint"></a>
 # topic:/traffic_waypoint 
 ## std_msgs/Int32
 
-# topic:/vehicle/dbw_enabled
-## std_msgs/Bool
-
+<a name="brake_report"></a>
 # topic:/vehicle/brake_report
 ## std_msgs/Float32
 
+<a name="throttle_report"></a>
 # topic:/vehicle/throttle_report
 ## std_msgs/Float32 
 
+<a name="base_waypoints"></a>
 # topic:/base_waypoints
+<a name="final_waypoints"></a>
 # topic:/final_waypoints 
 ## styx_msgs/Lane
 ~~~
@@ -54,6 +57,7 @@ styx_msgs/Waypoint[] waypoints
         float64 z
 ~~~
 
+<a name="traffic_lights"></a>
 # topic:/vehicle/traffic_lights
 ## styx_msgs/TrafficLightArray
 ~~~
@@ -88,7 +92,9 @@ styx_msgs/TrafficLight[] lights
   uint8 state
 ~~~
 
+<a name="current_velocity"></a>
 # topic:/current_velocity
+<a name="twist_cmd"></a>
 # topic:/twist_cmd
 
 ## geometry_msgs/TwistStamped
@@ -108,7 +114,9 @@ geometry_msgs/Twist twist
     float64 z
 ~~~
 
+<a name="current_pose"></a>
 # topic:/current_pose
+<a name="obstacle"></a>
 # topic:/vehicle/obstacle
 
 ## geometry_msgs/PoseStamped 
@@ -129,7 +137,9 @@ geometry_msgs/Pose pose
     float64 w
 ~~~
 
+<a name="obstacle_points"></a>
 # topic:/vehicle/obstacle_points
+<a name="lidar"></a>
 # topic:/vehicle/lidar
 
 ## sensor_msgs/PointCloud2
@@ -160,6 +170,7 @@ uint8[] data
 bool is_dense
 ~~~
 
+<a name="image_color"></a>
 # topic:/image_color
 ## sensor_msgs/Image
 ~~~
@@ -175,6 +186,7 @@ uint32 step
 uint8[] data
 ~~~
 
+<a name="tf"></a>
 # topic:/tf
 ## tf2_msgs/TFMessage
 ~~~
@@ -196,7 +208,7 @@ geometry_msgs/TransformStamped[] transforms
       float64 w
 ~~~
 
-<a name="test"></a>
+<a name="steering_cmd"></a>
 # topic:/vehicle/steering_cmd
 ## dbw_mkz_msgs/SteeringCmd
 
@@ -210,6 +222,7 @@ bool quiet
 uint8 count
 ~~~
 
+<a name="brake_cmd"></a>
 # topic:/vehicle/brake_cmd
 ## dbw_mkz_msgsBrakeCmd
 ~~~
@@ -228,6 +241,7 @@ bool ignore
 uint8 count
 ~~~
 
+<a name="throttle_cmd"></a>
 # topic:/vehicle/throttle_cmd
 ## dbw_mkz_msgs/ThrottleCmd
 ~~~
@@ -242,6 +256,7 @@ bool ignore
 uint8 count
 ~~~
 
+<a name="steering_report"></a>
 # /vehicle/steering_report
 ## dbw_mkz_msgs/SteeringReport
 ~~~
