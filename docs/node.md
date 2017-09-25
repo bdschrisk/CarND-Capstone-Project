@@ -4,8 +4,8 @@
 
 ### subscriber
 - [/vehicle/steering_cmd](./msg.md#steering_cmd)
-- [/vehicle/throttle_cmd](./msg.md#throtb(./msg.md#xxx)tle_cmd)
-- [/vehicle/brake_cmd](./msg.md#b(./msg.md#xxx)rake_cmd)
+- [/vehicle/throttle_cmd](./msg.md#throttle_cmd)
+- [/vehicle/brake_cmd](./msg.md#brake_cmd)
 
 ### publisher
 - [/current_pose](./msg.md#current_pose)
@@ -13,7 +13,7 @@
 - [/vehicle/steering_report](./msg.md#steering_report)
 - [/vehicle/throttle_report](./msg.md#throttle_report)
 - [/vehicle/brake_report](./msg.md#brake_report)
-- [/vehicle/obstacle](./msg.md#/obstacle)
+- [/vehicle/obstacle]
 - [/vehicle/obstacle_points](./msg.md#obstacle_points)
 - [/vehicle/lidar](./msg.md#lidar)
 - [/vehicle/traffic_lights](./msg.md#traffic_lights)
@@ -26,7 +26,7 @@
 - None
 
 ### publisher
-- [camera_info](./msg.md#camera_info)
+- [camera_info])
 
 # Perception
 
@@ -64,10 +64,8 @@
 ### subscriber 
 - [/current_pose](./msg.md#current_pose)
 - [/base_waypoints](./msg.md#base_waypoints)
-
-#### todo
-- [/obtacle_waypoint](./msg.md#obtacle_waypoint)
-- [/traffic_waypoint](./msg.md#traffic_waypoint)
+- **ToDo**[/vehicle/obtacle]
+- **ToDo**[/traffic_waypoint](./msg.md#traffic_waypoint)
 
 ### publisher
 - [/final_waypoints](./msg.md#final_waypoints)
@@ -77,10 +75,8 @@
 ## DBW Node[dbw_node]
 ### subscriber 
 - [/vehicle/dbw_enabled](./msg.md#dbw_enabled)
-
-#### todo
-- [/twist_cmd](./msg.md#twist_cmd)
-- [/current_velocity](./msg.md#current_velocity)
+- **ToDo**[/twist_cmd](./msg.md#twist_cmd)
+- **ToDo**[/current_velocity](./msg.md#current_velocity)
 
 ### publisher
 - [/vehicle/steering_cmd](./msg.md#steering_cmd)
@@ -94,4 +90,4 @@
 - [/current_velocity](./msg.md#current_velocity)
 
 ## publisher
-- [/twist_cmd]](./msg.md#twist_cmd)
+- [/twist_cmd](./msg.md#twist_cmd)
