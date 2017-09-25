@@ -26,7 +26,7 @@
 - None
 
 ### publisher
-- [camera_info])
+- [camera_info]
 
 # Perception
 
@@ -36,10 +36,9 @@
 - [/current_pose](./msg.md#current_pose)
 - [/base_waypoints](./msg.md#base_waypoints)
 - [/image_color](./msg.md#image_color)
+- **SIM ONLY** [/vehicle/traffic_lights](./msg.md#traffic_lights)
 
 ### publisher
-
-- [/vehicle/traffic_lights](./msg.md#traffic_lights)
 - [/traffic_waypoint](./msg.md#traffic_waypoint)
 
 ## tl_publisher
@@ -64,8 +63,8 @@
 ### subscriber 
 - [/current_pose](./msg.md#current_pose)
 - [/base_waypoints](./msg.md#base_waypoints)
-- **ToDo**[/vehicle/obtacle]
-- **ToDo**[/traffic_waypoint](./msg.md#traffic_waypoint)
+- **ToDo** [/vehicle/obtacle](./msg.md#obtacle)
+- **ToDo** [/traffic_waypoint](./msg.md#traffic_waypoint)
 
 ### publisher
 - [/final_waypoints](./msg.md#final_waypoints)
