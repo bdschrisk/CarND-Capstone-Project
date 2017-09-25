@@ -1,4 +1,21 @@
-# styx_msgs
+
+# topic:/vehicle/dbw_enabled 
+## std_msgs/Bool
+
+# topic:/traffic_waypoint 
+## std_msgs/Int32
+
+# topic:/vehicle/dbw_enabled
+## std_msgs/Bool
+
+# topic:/vehicle/brake_report
+## std_msgs/Float32
+
+# topic:/vehicle/throttle_report
+## std_msgs/Float32 
+
+# topic:/base_waypoints
+# topic:/final_waypoints 
 ## styx_msgs/Lane
 ~~~
 std_msgs/Header header
@@ -37,7 +54,8 @@ styx_msgs/Waypoint[] waypoints
         float64 z
 ~~~
 
-## styx_msgs/TrafficLightArray                   
+# topic:/vehicle/traffic_lights           
+## styx_msgs/TrafficLightArray
 ~~~
 std_msgs/Header header
   uint32 seq
@@ -70,8 +88,9 @@ styx_msgs/TrafficLight[] lights
   uint8 state
 ~~~
 
+# topic:/current_velocity
+# topic:/twist_cmd 
 
-# geometry_msgs
 ## geometry_msgs/TwistStamped
 ~~~
 std_msgs/Header header
@@ -89,7 +108,10 @@ geometry_msgs/Twist twist
     float64 z
 ~~~
 
-## geometry_msgs/PoseStamped  
+# topic:/current_pose 
+# topic:/vehicle/obstacle
+
+## geometry_msgs/PoseStamped 
 ~~~
 std_msgs/Header header
   uint32 seq
@@ -107,7 +129,9 @@ geometry_msgs/Pose pose
     float64 w
 ~~~
 
-# sensor_msgs
+# topic:/vehicle/obstacle_points
+# topic:/vehicle/lidar
+
 ## sensor_msgs/PointCloud2
 ~~~
 std_msgs/Header header
@@ -136,6 +160,7 @@ uint8[] data
 bool is_dense
 ~~~
 
+# topic:/image_color
 ## sensor_msgs/Image
 ~~~
 std_msgs/Header header
@@ -150,7 +175,7 @@ uint32 step
 uint8[] data
 ~~~
 
-# tf2_msgs
+# topic:/tf
 ## tf2_msgs/TFMessage
 ~~~
 geometry_msgs/TransformStamped[] transforms
@@ -171,9 +196,9 @@ geometry_msgs/TransformStamped[] transforms
       float64 w
 ~~~
 
-# dbw_mkz_msgs
-
+# topic:/vehicle/steering_cmd 
 ## dbw_mkz_msgs/SteeringCmd
+
 ~~~
 float32 steering_wheel_angle_cmd
 float32 steering_wheel_angle_velocity
@@ -184,6 +209,7 @@ bool quiet
 uint8 count
 ~~~
 
+# topic: /vehicle/brake_cmd 
 ## dbw_mkz_msgsBrakeCmd
 ~~~
 uint8 CMD_NONE=0
@@ -201,6 +227,7 @@ bool ignore
 uint8 count
 ~~~
 
+# topic:/vehicle/throttle_cmd
 ## dbw_mkz_msgs/ThrottleCmd
 ~~~
 uint8 CMD_NONE=0
@@ -214,6 +241,7 @@ bool ignore
 uint8 count
 ~~~
 
+# /vehicle/steering_report 
 ## dbw_mkz_msgs/SteeringReport
 ~~~
 std_msgs/Header header
