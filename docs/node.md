@@ -43,7 +43,9 @@
 
 ## tl_publisher
 
-### su`/vehicle/obstacle[geometry_msgs/PoseStamped]`
+### subscriber 
+- None
+
 ### publisher
 - [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
 
