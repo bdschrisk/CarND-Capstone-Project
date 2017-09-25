@@ -15,7 +15,8 @@
 - [/vehicle/brake_report](./msg.md#brake_report)
 - [/vehicle/obstacle](./msg.md#obstacle)
 - [/vehicle/obstacle_points](./msg.md#obstacle_points)
-- [/vehicle/lidar](./msg.md#lidar)./msg.md#cle/traffic_lights](./msg.md#traffic_lights)
+- [/vehicle/lidar](./msg.md#lidar)
+- [/vehicle/traffic_lights](./msg.md#traffic_lights)
 - [/vehicle/dbw_enabled](./msg.md#dbw_enabled)
 - [/image_color](./msg.md#image_color)
 
