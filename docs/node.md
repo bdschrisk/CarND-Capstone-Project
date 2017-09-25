@@ -3,7 +3,7 @@
 ## styx_server
 
 ### subscriber
-- [/vehicle/steering_cmd](./msg.md#steering_cmd)
+- [`/vehicle/steering_cmd[dbw_mkz_msgs/SteeringCmd]`](./msg.md#steering_cmd)
 - [/vehicle/throttle_cmd](./msg.md#throttle_cmd)
 - [/vehicle/brake_cmd](./msg.md#brake_cmd)
 
