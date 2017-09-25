@@ -1,7 +1,8 @@
-b(./msg.md#xxx)b(./msg.md#xxx)b(./msg.md#xxx)b(./msg.md#xxx)
-# Carb(./msg.md#xxx)veb(./msg.md#xxx)
-b(./msg.md#xxx)
-### subscriberb(./msg.md#xxx)
+# Car/Simulator
+
+## styx_server
+
+### subscriber
 - [/vehicle/steering_cmd](./msg.md#steering_cmd)b(./msg.md#xxx)
 - [/vehicle/throttle_cmd](./msg.md#throtb(./msg.md#xxx)tle_cmd)
 - [/vehicle/brake_cmd](./msg.md#b(./msg.md#xxx)rake_cmd)
