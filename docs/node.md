@@ -1,25 +1,23 @@
-
-# Car/Simulator
-
-## styx_server
-
-### subscriber
-- [/vehicle/steering_cmd](./msg.md#test)
-- /vehicle/throttle_cmd
-- /vehicle/brake_cmd
+b(./msg.md#xxx)b(./msg.md#xxx)b(./msg.md#xxx)b(./msg.md#xxx)
+# Carb(./msg.md#xxx)veb(./msg.md#xxx)
+b(./msg.md#xxx)
+### subscriberb(./msg.md#xxx)
+- [/vehicle/steering_cmd](./msg.md#steering_cmd)b(./msg.md#xxx)
+- [/vehicle/throttle_cmd](./msg.md#throtb(./msg.md#xxx)tle_cmd)
+- [/vehicle/brake_cmd](./msg.md#b(./msg.md#xxx)rake_cmd)
 
 ### publisher
-- /current_pose
-- /current_velocity
-- /vehicle/steering_report
-- /vehicle/throttle_report
-- /vehicle/brake_report
-- /vehicle/obstacle'
-- /vehicle/obstacle_points
-- /vehicle/lidar
-- /vehicle/traffic_lights
-- /vehicle/dbw_enabled
-- /image_color
+- [/current_pose](./msg.md#current_pose)
+- [/current_velocity](./msg.md#current_velocity)
+- [/vehicle/steering_report](./msg.md#steering_report)
+- [/vehicle/throttle_report](./msg.md#throttle_report)
+- [/vehicle/brake_report](./msg.md#brake_report)
+- [/vehicle/obstacle](./msg.md#/obstacle)
+- [/vehicle/obstacle_points](./msg.md#obstacle_points)
+- [/vehicle/lidar](./msg.md#lidar)
+- [/vehicle/traffic_lights](./msg.md#traffic_lights)
+- [/vehicle/dbw_enabled](./msg.md#dbw_enabled)
+- [/image_color](./msg.md#image_color)
 
 ## camera_info_publisher
 
@@ -27,21 +25,21 @@
 - None
 
 ### publisher
-- camera_info
+- [camera_info](./msg.md#camera_info)
 
 # Perception
 
 ## Traffic Light Detection Node[tl_detctor]
 
 ### subscriber 
-- /current_pose
-- /base_waypoints
-- /image_color
+- [/current_pose](./msg.md#current_pose)
+- [/base_waypoints](./msg.md#base_waypoints)
+- [/image_color](./msg.md#image_color)
 
 ### publisher
 
-- /vehicle/traffic_lights
-- /traffic_waypoint
+- [/vehicle/traffic_lights](./msg.md#traffic_lights)
+- [/traffic_waypoint](./msg.md#traffic_waypoint)
 
 ## tl_publisher
 
@@ -49,7 +47,7 @@
 - None
 
 ### publisher
-- /vehicle/traffic_lights
+- [/vehicle/traffic_lights](./msg.md#traffic_lights)
 
 # Planning
 ## Waypoint Loader[waypoint_loader]
@@ -58,39 +56,41 @@
 - None
 
 ### publisher
-- /base_waypoints
+- [/base_waypoints](./msg.md#base_waypoints)
 
 ## Waypoint Updater Node [waypoint_updater]
 
-## subscriber 
-- /current_pose
-- /base_waypoints
-- [todo]/obtacle_waypoint
-- [todo]/traffic_waypoint
+### subscriber 
+- [/current_pose](./msg.md#current_pose)
+- [/base_waypoints](./msg.md#base_waypoints)
 
-## publisher
-- /final_waypoints
+#### todo
+- [/obtacle_waypoint](./msg.md#obtacle_waypoint)
+- [/traffic_waypoint](./msg.md#traffic_waypoint)
+
+### publisher
+- [/final_waypoints](./msg.md#final_waypoints)
 
 # Control
 
 ## DBW Node[dbw_node]
 ### subscriber 
-- /vehicle/dbw_enabled
-- [todo]/twist_cmd
-- [todo]/current_velocity
+- [/vehicle/dbw_enabled](./msg.md#dbw_enabled)
+
+#### todo
+- [/twist_cmd](./msg.md#twist_cmd)
+- [/current_velocity](./msg.md#current_velocity)
 
 ### publisher
-- /vehicle/steering_cmd
-- /vehicle/throttle_cmd
-- /vehicle/brake_cmd
+- [/vehicle/steering_cmd](./msg.md#steering_cmd)
+- [/vehicle/throttle_cmd](./msg.md#throttle_cmd)
+- [/vehicle/brake_cmd](./msg.md#brake_cmd)
 
 ## Waypoint Follower[pure_pursuit]
 ## subscriber 
-- /final_waypoints
-- /current_pose
-- /current_velocity
+- [/final_waypoints](./msg.md#final_waypoints)
+- [/current_pose](./msg.md#current_pose)
+- [/current_velocity](./msg.md#current_velocity)
 
 ## publisher
-- /twist_cmd
-
-
+- [/twist_cmd]](./msg.md#twist_cmd)
