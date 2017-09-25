@@ -64,10 +64,11 @@ class WaypointUpdater(object):
 		
 		#iterate and find the closest node
         for i in range(len(self.base_waypoints)):
-	    	wp_diff = (self.base_waypoints[i].pose.pose.position.x-cur_x) + (self.base_waypoints[i].pose.pose.position.y-cur_y)
-			if (wp_diff < closest_dist):
-				closest_dist = wp_diff
-				closest_wp = i
+		if (self.base_waypoints[i].pose.pose.position.x > cur_x) and (self.base_waypoints[i].pose.pose.position.y > cur_y):
+			wp_diff = (self.base_waypoints[i].pose.pose.position.x-cur_x) + (self.base_waypoints[i].pose.pose.position.y-cur_y)
+				if (wp_diff < closest_dist):
+					closest_dist = wp_diff
+					closest_wp = i
 				
 		return i
 
