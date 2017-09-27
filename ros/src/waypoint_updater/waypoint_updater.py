@@ -82,9 +82,9 @@ class WaypointUpdater(object):
 		### Member variables
 
 		# TODO: Add other member variables you need below
-		final_waypoints = None
-		current_pose = None
-		base_waypoints = None
+		self.final_waypoints = None
+		self.current_pose = None
+		self.base_waypoints = None
 
 		rospy.spin()
 
