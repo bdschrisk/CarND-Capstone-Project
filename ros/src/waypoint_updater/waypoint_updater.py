@@ -82,7 +82,6 @@ class WaypointUpdater(object):
 		### Member variables
 
 		# TODO: Add other member variables you need below
-		self.final_waypoints = None
 		self.current_pose = None
 		self.base_waypoints = None
 
@@ -135,8 +134,11 @@ class WaypointUpdater(object):
 
 		# from the current pose and the base_waypoints extract the closest node
 		cl_wp = closest_node(self)
-		self.final_waypoints = get_final_wp(self, cl_wp)
-		self.final_waypoints_pub.publish(self.final_waypoints)
+		#get_final_wp() returns type Lane
+		final_lane = Lane()
+		final_lane = get_final_wp(self, cl_wp)
+		#final_waypoints_sub topic publishes a message of type Lane
+		self.final_waypoints_pub.publish(final_lane)
 		pass
 
 	def waypoints_cb(self, waypoints):
