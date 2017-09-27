@@ -131,7 +131,7 @@ class WaypointUpdater(object):
 
 		# TODO: Implement
 		# obtain the current pose
-		self.current_pose = msg
+		self.current_pose = msg.pose
 
 		# from the current pose and the base_waypoints extract the closest node
 		cl_wp = closest_node(self)
