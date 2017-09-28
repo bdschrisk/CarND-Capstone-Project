@@ -15,7 +15,8 @@ This project is the culmination of five team members who share a bold vision, to
 
 ### Meet Carla
 **The Udacity self-driving car**
-![Carla](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/imgs/udacity-carla.jpg)\s\s
+![Carla](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/imgs/udacity-carla.jpg)
+
 *To learn more about Carla, see [here](https://medium.com/udacity/how-the-udacity-self-driving-car-works-575365270a40)*
 
 Using the Robot Operating System (ROS), each team member has developed and maintained a core component of the infrastructure that is demanded by a truly autonomous vehicle.
