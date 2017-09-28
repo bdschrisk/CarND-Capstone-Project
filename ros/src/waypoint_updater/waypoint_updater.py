@@ -102,14 +102,18 @@ class WaypointUpdater(object):
 		# TODO: Implement
 		# obtain the current pose
 		self.current_pose = msg
+
+		#this should in theory accelerate the car in a straight line from it's current position
 		waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
 
 		for i in range(LOOKAHEAD_WPS):
 
 			waypoints_final[i]
 			waypoints_final[i].pose = self.current_pose
-			# waypoints_final[i].pose.pose.position.x = self.current_pose.pose.position.x + (5*(i+1))
-			waypoints_final[i].twist.twist.linear.x = 40
+			waypoints_final[i].pose.pose.position.x += i*0.1
+			waypoints_final[i].pose.pose.position.y += i*0.1
+			waypoints_final[i].twist.twist.linear.x += .5
+			waypoints_final[i].twist.twist.angular.z += .5
 
 		self.final_waypoints.waypoints = waypoints_final
 		self.final_waypoints_pub.publish(self.final_waypoints)
