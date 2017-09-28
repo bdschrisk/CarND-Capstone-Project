@@ -88,9 +88,9 @@ class WaypointUpdater(object):
 	
 		
 		### Member variables
-		self.current_pose = None	# PoseStamped
-		self.base_waypoints = None	# Lane
-		self.final_waypoints = None	# Lane
+		self.current_pose = PoseStamped()	# PoseStamped
+		self.base_waypoints = Lane()	# Lane
+		self.final_waypoints = Lane()	# Lane
 
 		rospy.spin()
 
@@ -102,7 +102,16 @@ class WaypointUpdater(object):
 		# TODO: Implement
 		# obtain the current pose
 		self.current_pose = msg
-		self.final_waypoints = self.base_waypoints
+		waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
+
+		for i in range(LOOKAHEAD_WPS):
+
+			waypoints_final[i]
+			waypoints_final[i].pose = self.current_pose
+			# waypoints_final[i].pose.pose.position.x = self.current_pose.pose.position.x + (5*(i+1))
+			waypoints_final[i].twist.twist.linear.x = 40
+
+		self.final_waypoints.waypoints = waypoints_final
 		self.final_waypoints_pub.publish(self.final_waypoints)
 
 	def waypoints_cb(self, waypoints):
