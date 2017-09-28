@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint
 from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
@@ -75,27 +75,30 @@ class WaypointUpdater(object):
 		rospy.init_node('waypoint_updater')
 	
 		### Subscribers
-		rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 		# all waypoints of the track before and after the car
 		self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+		rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
+		rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 		rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 		rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
 	
-		
 		### Publishers
 		# publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
 		self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-	
 		
 		### Member variables
 		self.current_pose = PoseStamped()	# PoseStamped
 		self.base_waypoints = Lane()	# Lane
 		self.final_waypoints = Lane()	# Lane
+		self.current_velocity = TwistStamped()	# TwistStamped
 
 		rospy.spin()
 
 	
 	
+	def velocity_cb(self, msg):
+
+		self.current_velocity = msg
 
 	def pose_cb(self, msg):
 
@@ -103,17 +106,16 @@ class WaypointUpdater(object):
 		# obtain the current pose
 		self.current_pose = msg
 
-		#this should in theory accelerate the car in a straight line from it's current position
+		# for debugging
+		# this should in theory accelerate the car in a straight line from it's current position
 		waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
 
 		for i in range(LOOKAHEAD_WPS):
 
-			waypoints_final[i]
 			waypoints_final[i].pose = self.current_pose
-			waypoints_final[i].pose.pose.position.x += i*0.1
-			waypoints_final[i].pose.pose.position.y += i*0.1
-			waypoints_final[i].twist.twist.linear.x += .5
-			waypoints_final[i].twist.twist.angular.z += .5
+			waypoints_final[i].pose.pose.position.x += (i+1)*10.
+			waypoints_final[i].twist = self.current_velocity
+			waypoints_final[i].twist.twist.linear.x += (i+1)*10.
 
 		self.final_waypoints.waypoints = waypoints_final
 		self.final_waypoints_pub.publish(self.final_waypoints)
