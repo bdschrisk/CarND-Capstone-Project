@@ -81,6 +81,12 @@ class DBWNode(object):
         self.dbw_enabled = msg.data
         # TODO: reset steering and throttle PID controllers accordingly
 
+    def current_velocity_cb(self, msg):
+        self.current_velocity = msg
+
+    def twist_cmd_cb(self, msg):
+        self.twist_cmd = msg.data
+
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
         tcmd.enable = True
