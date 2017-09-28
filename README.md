@@ -14,10 +14,19 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 This project is the culmination of five team members who share a bold vision, to create safe autonomous vehicles the world over.
 
 ### Meet Carla
-![Carla](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/imgs/udacity-carla.jpg)
-*For a more information on Carla, see [here](https://medium.com/udacity/how-the-udacity-self-driving-car-works-575365270a40)*
+**The Udacity self-driving car**
+![Carla](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/imgs/udacity-carla.jpg)\s\s
+*To learn more about Carla, see [here](https://medium.com/udacity/how-the-udacity-self-driving-car-works-575365270a40)*
 
 Using the Robot Operating System (ROS), each team member has developed and maintained a core component of the infrastructure that is demanded by a truly autonomous vehicle.
+The three core components of any good robot are the following:
+ -  Perception
+    Sensing the environment to perceive obstacles, traffic hazards as well as traffic lights and road signs
+ -  Planning
+    Route planning to a given goal state using data from localisation, perception and environment maps
+ -  Control
+    Actualising trajectories formed as part of planning, in order actuate the vehicle, through steering, throttle and brake commands
+
 
 **ROS Node Architecture**
 ![Node architecture](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/docs/final-project-ros-graph-v2.png)
