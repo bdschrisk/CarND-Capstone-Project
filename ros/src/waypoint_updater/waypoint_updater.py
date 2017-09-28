@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 from std_msgs.msg import Int32
+from tf.transformations import euler_from_quaternion
 
 import math
 
@@ -89,23 +90,30 @@ class WaypointUpdater(object):
 
 	def closest_node(self):
 
-		# current position
-		cur_x = self.current_pose.pose.position.x
-		cur_y = self.current_pose.pose.position.y
+		#current position
+		cur_x = self.current_pose.position.x
+		cur_y = self.current_pose.position.y
+		cur_o = self.current_pose.orientation
+		cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
+		cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
 
-		closest_dist = 99999999
+		closest_dist = 999999
 		closest_wp = None
 
-		# TODO: check based on orientation
-
-		#iterate and find the closest node
 		for i in range(len(self.base_waypoints)):
-			if (self.base_waypoints[i].pose.pose.position.x > cur_x) and (self.base_waypoints[i].pose.pose.position.y > cur_y):
-				wp_diff = (self.base_waypoints[i].pose.pose.position.x-cur_x) + (self.base_waypoints[i].pose.pose.position.y-cur_y)
-				if (wp_diff < closest_dist):
-					closest_dist = wp_diff
-					closest_wp = i
-		
+		    w_x = self.base_waypoints[i].pose.pose.position.x
+		    w_y = self.base_waypoints[i].pose.pose.position.y
+		    dist = math.sqrt(math.pow(cur_x-w_x, 2) + math.pow(cur_y-w_y, 2))
+		    if dist < closest_dist:
+			closest_dist = dist
+			closest_wp = i
+
+		#Check if waypoint is ahead of vehicle
+		dist_ahead = ((w_x - cur_x)* math.cos(cur_yaw)+
+			      (w_y - cur_y)* math.sin(cur_yaw)) > 0.0
+		if not dist_ahead:
+		#TODO: use following waypoint if behind vehicle
+
 		return closest_wp
 
 
