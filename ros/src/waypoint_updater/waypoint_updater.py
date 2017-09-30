@@ -25,35 +25,6 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 30 # Number of waypoints we will publish. You can change this number
 
-def closest_node(self):
-
-	#current position
-	cur_x = self.current_pose.position.x
-	cur_y = self.current_pose.position.y
-	cur_o = self.current_pose.orientation
-	cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
-	cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
-
-	closest_dist = 999999
-	closest_wp = None
-
-	for i in range(len(self.base_waypoints)):
-	    w_x = self.base_waypoints[i].pose.pose.position.x
-	    w_y = self.base_waypoints[i].pose.pose.position.y
-	    dist = math.sqrt(math.pow(cur_x-w_x, 2) + math.pow(cur_y-w_y, 2))
-	    if dist < closest_dist:
-		closest_dist = dist
-		closest_wp = i
-
-	#Check if waypoint is ahead of vehicle
-	dist_ahead = ((w_x - cur_x)* math.cos(cur_yaw)+
-		      (w_y - cur_y)* math.sin(cur_yaw)) > 0.0
-	# if not dist_ahead:
-	#TODO: use following waypoint if behind vehicle
-
-	return closest_wp
-
-
 def get_final_wp(self, cl_wp):
 
 	lane = Lane()
@@ -147,6 +118,38 @@ class WaypointUpdater(object):
 			dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
 			wp1 = i
 		return dist
+
+	def closest_node(self):
+
+		# current position
+		cur_pos_x = self.current_pose.position.x
+		cur_pos_y = self.current_pose.position.y
+
+		# we can assume the track waypoints are already in a cyclic order
+		cur_o = self.current_pose.orientation
+		cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
+		cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
+
+		closest_dist = float("inf")
+		closest_wp = 0
+
+		for i in range(len(self.base_waypoints)):
+
+		    base_wp_x = self.base_waypoints[i].pose.pose.position.x
+		    base_wp_y = self.base_waypoints[i].pose.pose.position.y
+		    dist = math.sqrt(math.pow(cur_pos_x-base_wp_x, 2) + math.pow(cur_pos_y-base_wp_y, 2))
+		    if dist < closest_dist:
+				closest_dist = dist
+				closest_wp = i
+
+		# TODO: modify and complete this function
+		#Check if waypoint is ahead of vehicle
+		dist_ahead = ((base_wp_x - cur_pos_x)* math.cos(cur_yaw)+
+			      (base_wp_y - cur_pos_y)* math.sin(cur_yaw)) > 0.0
+		# if not dist_ahead:
+		#TODO: use following waypoint if behind vehicle
+
+		return closest_wp
 
 
 if __name__ == '__main__':
