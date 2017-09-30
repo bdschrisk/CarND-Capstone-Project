@@ -23,23 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 30 # Number of waypoints we will publish. You can change this number
-
-def get_final_wp(self, cl_wp):
-
-	lane = Lane()
-	#lane.header = self.base_waypoints.header
-
-	final_wp = []
-	i = 0
-	while(i<LOOKAHEAD_WPS):
-		pos_ = (cl_wp+i)%(len(self.base_waypoints))
-		final_wp.append(self.base_waypoints[pos_])
-		i += 1
-
-	lane.waypoints = final_wp
-
-	return lane
+LOOKAHEAD_WPS = 2 # Number of waypoints we will publish. You can change this number
 
 class WaypointUpdater(object):
 	def __init__(self):
@@ -77,16 +61,27 @@ class WaypointUpdater(object):
 		# obtain the current pose
 		self.current_pose = msg
 
-		# for debugging
-		# this should in theory accelerate the car in a straight line from it's current position
-		waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
+		closest_wp = self.closest_node()
+
+		waypoints_final = []
 
 		for i in range(LOOKAHEAD_WPS):
 
-			waypoints_final[i].pose = self.current_pose
-			waypoints_final[i].pose.pose.position.x += (i+1)*10.
-			waypoints_final[i].twist = self.current_velocity
-			waypoints_final[i].twist.twist.linear.x += (i+1)*10.
+			wp_index = (closest_wp + i) % len(self.base_waypoints.waypoints)
+			waypoints_final.append(self.base_waypoints.waypoints[wp_index])
+
+		# for debugging uncomment between the "====="
+		# =====
+		# # this should in theory accelerate the car in a straight line from it's current position
+		# waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
+
+		# for i in range(LOOKAHEAD_WPS):
+
+		# 	waypoints_final[i].pose = self.current_pose
+		# 	waypoints_final[i].pose.pose.position.x += (i+1)*10.
+		# 	waypoints_final[i].twist = self.current_velocity
+		# 	waypoints_final[i].twist.twist.linear.x += (i+1)*10.
+		# =====
 
 		self.final_waypoints.waypoints = waypoints_final
 		self.final_waypoints_pub.publish(self.final_waypoints)
@@ -95,7 +90,7 @@ class WaypointUpdater(object):
 
 		self.base_waypoints = waypoints
 		# we only need the message once, unsubscribe after first receive
-		self.base_waypoints_sub.unregister()
+		# self.base_waypoints_sub.unregister()
 
 	def traffic_cb(self, msg):
 		# TODO: Callback for /traffic_waypoint message. Implement
@@ -122,35 +117,40 @@ class WaypointUpdater(object):
 	def closest_node(self):
 
 		# current position
-		cur_pos_x = self.current_pose.position.x
-		cur_pos_y = self.current_pose.position.y
+		cur_pos_x = self.current_pose.pose.position.x
+		cur_pos_y = self.current_pose.pose.position.y
 
 		# we can assume the track waypoints are already in a cyclic order
-		cur_o = self.current_pose.orientation
+		cur_o = self.current_pose.pose.orientation
 		cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
 		cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
 
-		closest_dist = float("inf")
-		closest_wp = 0
+		closest_dist = 999999.
+		closest_wp = None
 
-		for i in range(len(self.base_waypoints)):
+		if len(self.base_waypoints.waypoints) > 0:
+			for i in range(len(self.base_waypoints.waypoints)):
 
-		    base_wp_x = self.base_waypoints[i].pose.pose.position.x
-		    base_wp_y = self.base_waypoints[i].pose.pose.position.y
-		    dist = math.sqrt(math.pow(cur_pos_x-base_wp_x, 2) + math.pow(cur_pos_y-base_wp_y, 2))
-		    if dist < closest_dist:
-				closest_dist = dist
-				closest_wp = i
+			    base_wp_x = self.base_waypoints.waypoints[i].pose.pose.position.x
+			    base_wp_y = self.base_waypoints.waypoints[i].pose.pose.position.y
+			    dist = math.sqrt(math.pow(cur_pos_x-base_wp_x, 2) + math.pow(cur_pos_y-base_wp_y, 2))
+			    if dist < closest_dist:
+					closest_dist = dist
+					closest_wp = i
 
-		# TODO: modify and complete this function
-		#Check if waypoint is ahead of vehicle
-		dist_ahead = ((base_wp_x - cur_pos_x)* math.cos(cur_yaw)+
-			      (base_wp_y - cur_pos_y)* math.sin(cur_yaw)) > 0.0
-		# if not dist_ahead:
-		#TODO: use following waypoint if behind vehicle
+			#Check if waypoint is ahead of vehicle
+			closest_wp_x = self.base_waypoints.waypoints[closest_wp].pose.pose.position.x
+			closest_wp_y = self.base_waypoints.waypoints[closest_wp].pose.pose.position.y
+			dist_ahead = ((closest_wp_x - cur_pos_x)* math.cos(cur_yaw)+
+				      (closest_wp_y - cur_pos_y)* math.sin(cur_yaw)) > 0.0
 
-		return closest_wp
+			if not dist_ahead:
 
+				closest_wp = (closest_wp+i) % len(self.base_waypoints.waypoints)
+
+			return closest_wp
+		else:
+			return None
 
 if __name__ == '__main__':
     try:
