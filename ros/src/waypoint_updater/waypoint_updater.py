@@ -23,7 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 2 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 20 # Number of waypoints we will publish. You can change this number
 
 class WaypointUpdater(object):
 	def __init__(self):
@@ -48,8 +48,6 @@ class WaypointUpdater(object):
 		self.current_velocity = TwistStamped()	# TwistStamped
 
 		rospy.spin()
-
-	
 	
 	def velocity_cb(self, msg):
 
@@ -69,19 +67,6 @@ class WaypointUpdater(object):
 
 			wp_index = (closest_wp + i) % len(self.base_waypoints.waypoints)
 			waypoints_final.append(self.base_waypoints.waypoints[wp_index])
-
-		# for debugging uncomment between the "====="
-		# =====
-		# # this should in theory accelerate the car in a straight line from it's current position
-		# waypoints_final = [Waypoint() for i in range(LOOKAHEAD_WPS)]
-
-		# for i in range(LOOKAHEAD_WPS):
-
-		# 	waypoints_final[i].pose = self.current_pose
-		# 	waypoints_final[i].pose.pose.position.x += (i+1)*10.
-		# 	waypoints_final[i].twist = self.current_velocity
-		# 	waypoints_final[i].twist.twist.linear.x += (i+1)*10.
-		# =====
 
 		self.final_waypoints.waypoints = waypoints_final
 		self.final_waypoints_pub.publish(self.final_waypoints)
