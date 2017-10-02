@@ -20,6 +20,6 @@ class Controller(object):
 
         self.throttle_cmd = 0.75
         self.brake_cmd = 0.
-        self.steer_cmd = self.twist_cmd_received.twist.linear.x/5.
+        self.steer_cmd = self.twist_cmd_received.twist.linear.x/20.
 
         return self.throttle_cmd, self.brake_cmd, self.steer_cmd
