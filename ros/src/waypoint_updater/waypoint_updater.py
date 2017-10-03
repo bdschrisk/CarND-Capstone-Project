@@ -111,7 +111,7 @@ class WaypointUpdater(object):
 		cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
 
 		closest_dist = 999999.
-		closest_wp = None
+		closest_wp = 0
 
 		if len(self.base_waypoints.waypoints) > 0:
 			for i in range(len(self.base_waypoints.waypoints)):
@@ -133,9 +133,11 @@ class WaypointUpdater(object):
 
 				closest_wp = (closest_wp+i) % len(self.base_waypoints.waypoints)
 
-			return closest_wp
+				return closest_wp
+			else:
+				return closest_wp
 		else:
-			return None
+			return closest_wp
 
 if __name__ == '__main__':
     try:

@@ -19,6 +19,7 @@ class Controller(object):
         									max_lat_accel, max_steer_angle)
         
         self.twist_cmd_reveived = TwistStamped()
+        self.current_velocity_received = TwistStamped()
         self.throttle_cmd = None
         self.brake_cmd = None
         self.steer_cmd = None
@@ -33,11 +34,12 @@ class Controller(object):
         self.throttle_cmd = 0.75
         self.brake_cmd = 0.
 
-        self.angle = self.yaw_controller.get_angle(self.twist_cmd_received.twist.linear.x)
+        self.angle = self.yaw_controller.get_angle(4.)
 
         linear_velocity = self.twist_cmd_received.twist.linear.x
         angular_velocity = self.twist_cmd_received.twist.angular.x
-        current_velocity = args[1]
+        self.current_velocity_received = args[1]
+        current_velocity = self.current_velocity_received.twist.linear.x
         self.steer_cmd = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
 
         return self.throttle_cmd, self.brake_cmd, self.steer_cmd
