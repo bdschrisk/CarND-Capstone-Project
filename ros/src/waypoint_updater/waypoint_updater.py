@@ -7,6 +7,7 @@ from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
 
 import math
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -23,7 +24,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 20 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
 class WaypointUpdater(object):
 	def __init__(self):
@@ -48,13 +49,13 @@ class WaypointUpdater(object):
 		self.pose_cb_state = False 
 	
 		## Main Loop	
-	    rate = rospy.Rate(2.0)
-        while not rospy.is_shutdown():
-            if self.base_waypoints and self.velocity_cb_state and self_pose_cb_state:
-                self.closest_wp = self.closest_node()
-                self.get_waypoints()
-                self.publish_final_waypoints()
-            rate.sleep()
+		rate = rospy.Rate(2.0)
+		while not rospy.is_shutdown():
+			if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state:
+				self.closest_wp = self.closest_node()
+				self.get_waypoints()
+				self.publish_final_waypoints()
+			rate.sleep()
 	
 	def velocity_cb(self, msg):
 		# obtain the current velocity
@@ -65,35 +66,33 @@ class WaypointUpdater(object):
 	def pose_cb(self, msg):
 		# obtain the current pose
 		self.pose_cb_state = True 
-		self.position = msg.pose.postion
+		self.position = msg.pose.position
 		self.orientation = msg.pose.orientation
-        roll, pitch, yaw = tf.transformations.euler_from_quaternion([
-            self.orientation.x, self.orientation.y, self.orientation.z, self.orientation.w])
-        self.yaw = yaw
+		roll, pitch, yaw = euler_from_quaternion([
+			self.orientation.x, self.orientation.y, self.orientation.z, self.orientation.w])
+		self.yaw = yaw
 
 	def get_waypoints(self):
 		self.final_waypoints = []
 		for i in range(LOOKAHEAD_WPS):
 			wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
-			dist, angle = get_next_target(self.base_waypoints.waypoints[wp_index])
+			dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 			if self.current_linear_velocity < 5.0 :
 				l_vel =  self.current_linear_velocity + 0.5
 			else:
 				l_vel = 5.0
 
 			a_vel = angle * dist / l_vel;
-			set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
-			set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index:], a_vel)
+			self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
+			self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
 			self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
 		
-		self.final_waypoints_pub.publish(self.final_waypoints)
-
-    def publish_final_waypoints(self):
-        lane = Lane()
-        lane.header.frame_id = '/world'
-        lane.header.stamp = rospy.Time(0)
-        lane.waypoints = self.final_waypoints
-        self.final_waypoints_pub.publish(lane)
+	def publish_final_waypoints(self):
+		lane = Lane()
+		lane.header.frame_id = '/world'
+		lane.header.stamp = rospy.Time(0)
+		lane.waypoints = self.final_waypoints
+		self.final_waypoints_pub.publish(lane)
 
 	def waypoints_cb(self, waypoints):
 
@@ -109,21 +108,21 @@ class WaypointUpdater(object):
 		# TODO: Callback for /obstacle_waypoint message. We will implement it later
 		pass
 
-	def get_next_target(self, target_waypoint):
-        # convert to local coordinates
-        vx = waypoint.pose.pose.postion.x - self.postion.x
-        vy = waypoint.pose.pose.postion.y - self.position.y
-        lx = vx * np.cos(self.yaw) + vy * np.sin(self.yaw)
-        ly = -vx * np.sin(self.yaw) + vy * np.cos(self.yaw)
+	def get_next_target(self, waypoint):
+		# convert to local coordinates
+		vx = waypoint.pose.pose.position.x - self.position.x
+		vy = waypoint.pose.pose.position.y - self.position.y
+		lx = vx * np.cos(self.yaw) + vy * np.sin(self.yaw)
+		ly = -vx * np.sin(self.yaw) + vy * np.cos(self.yaw)
 		dist = math.sqrt(lx * lx + ly * ly)
 		angle = np.arctan2(ly, lx)
-        return dist, angle
+		return dist, angle
 
 
 	def get_waypoint_velocity(self, waypoint):
 		return waypoint.twist.twist.linear.x
 
-	def set_waypoint_liner_velocity(self, waypoint, velocity):
+	def set_waypoint_linear_velocity(self, waypoint, velocity):
 		waypoint.twist.twist.linear.x = velocity
 
 	def set_waypoint_angular_velocity(self, waypoint, angle):
@@ -172,7 +171,7 @@ class WaypointUpdater(object):
 		return closest_wp
 
 if __name__ == '__main__':
-    try:
-        WaypointUpdater()
-    except rospy.ROSInterruptException:
-        rospy.logerr('Could not start waypoint updater node.')
+	try:
+		WaypointUpdater()
+	except rospy.ROSInterruptException:
+		rospy.logerr('Could not start waypoint updater node.')

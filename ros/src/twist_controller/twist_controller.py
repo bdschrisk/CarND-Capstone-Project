@@ -5,21 +5,17 @@ ONE_MPH = 0.44704
 from  yaw_controller import YawController
 
 class Controller(object):
-    def __init__(self, *args, **kwargs):
-    # TODO: Implement
-        self.twist_cmd_reveived = None
-        self.throttle_cmd = None
-        self.brake_cmd = None
-        self.steer_cmd = None
+	def __init__(self, *args, **kwargs):
+		# TODO: Implement
 		self.accel_limit = kwargs['accel_limit']
 		self.decel_limit = kwargs['decel_limit']
 		self.yaw_controller = YawController(kwargs['wheel_base'], kwargs['steer_ratio'],
 											ONE_MPH, kwargs['max_lat_accel'],
 											kwargs['max_steer_angle'])
     
-    def control(self, *args, **kwargs):
-        # TODO: Change the arg, kwarg list to suit your needs
-        # Return throttle, brake, steer
+	def control(self, *args, **kwargs):
+		# TODO: Change the arg, kwarg list to suit your needs
+		# Return throttle, brake, steer
 		target_velocity_linear_x = args[0]
 		target_velocity_angular_z = args[1]
 		current_velocity_linear_x = args[2]
@@ -38,5 +34,4 @@ class Controller(object):
 			accel = max(self.decel_limit, accel)
 			throttle_cmd = 0.0
 			brake_cmd = accel / self.decel_limit
-
-        return throttle_cmd, brake_cmd, steer_cmd
+		return throttle_cmd, brake_cmd, steer_cmd
