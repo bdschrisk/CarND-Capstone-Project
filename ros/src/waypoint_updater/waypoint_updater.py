@@ -29,7 +29,7 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
-    
+
         ### Subscribers
         # all waypoints of the track before and after the car
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -37,17 +37,17 @@ class WaypointUpdater(object):
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
-    
+
         ### Publishers
         # publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-        
+
         ### Member variables
         self.base_waypoints = None
         self.final_waypoints = None
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
-    
+
         ## Main Loop    
         rate = rospy.Rate(2.0)
         while not rospy.is_shutdown():
@@ -56,7 +56,7 @@ class WaypointUpdater(object):
                 self.get_waypoints()
                 self.publish_final_waypoints()
             rate.sleep()
-    
+
     def velocity_cb(self, msg):
         # obtain the current velocity
         self.velocity_cb_state = True 
@@ -86,7 +86,7 @@ class WaypointUpdater(object):
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
             self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
             self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
-        
+
     def publish_final_waypoints(self):
         lane = Lane()
         lane.header.frame_id = '/world'
