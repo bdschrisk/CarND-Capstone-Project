@@ -22,21 +22,9 @@ weight_decay = 1e-4
 
 labels = {
         'unknown' : 0,
-        'off' : 0,
-#
+        'off' : 1,
+
         'green' : 2,
-        #'greenstraight' : 2 | 8,
-        #'greenleft' : 2 | 16,
-        #'greenright' : 2 | 32,
-        #'greenstraightleft' : 2 | 8 | 16,
-        #'greenstraightright' : 2 | 8 | 32,
-#
-        'yellow' : 1,
-        #'yellowleft' : 1 | 16,
-#
-        'red' : 4 | 8,
-        #'redleft' : 4 | 16,
-        #'redright' : 4 | 32,
-        #'redstraightleft' : 4 | 8 | 16,
-        #'redstraightright' : 4 | 8 | 32
+        'yellow' : 4,
+        'red' : 8
     }
