@@ -22,6 +22,31 @@
 
 ## camera_info_publisher[SITE ONLY]
 
+### param
+- grasshopper_calibration_yaml
+~~~
+image_width: 800↲
+image_height: 600↲
+camera_name: narrow_stereo↲
+camera_matrix:↲
+  rows: 3↲
+  cols: 3↲
+  data: [1352.729680, 0.000000, 426.573376, 0.000000, 1362.529057, 366.755119, 0.000000, 0.000000, 1.000000]↲
+distortion_model: plumb_bob↲
+distortion_coefficients:↲
+  rows: 1↲
+  cols: 5↲
+  data: [-0.050937, -0.096261, 0.011851, 0.008042, 0.000000]↲
+rectification_matrix:↲
+  rows: 3↲
+  cols: 3↲
+  data: [1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000]↲
+projection_matrix:↲
+  rows: 3↲
+  cols: 4↲
+  data: [1345.200806, 0.000000, 429.549312, 0.000000, 0.000000, 1353.838257, 369.393325, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000]↲
+~~~ 
+
 ### subscriber 
 - None
 
@@ -31,12 +56,23 @@
 # Perception
 
 ## Traffic Light Detection Node[tl_detctor]
+## param
+
+- traffic_light_config
+~~~
+camera_info:↲
+  focal_length_x: 
+  focal_length_y: ↲
+  image_width: 
+  image_height: 
+stop_line_positions:↲
+~~~
 
 ### subscriber 
 - [`/current_pose[geometry_sensor_msgs/Imagemsgs/PoseStamped]`](./msg.md#current_pose)
 - [`/base_waypoints[styx_msgs/Lane]`](./msg.md#base_waypoints)
 - [`/image_color[sensor_msgs/Image]`](./msg.md#image_color)
-- **SIM ONLY** [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
+- [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
 
 ### publisher
 - [`/traffic_waypoint[std_msgs/Int32]`](./msg.md#traffic_waypoint)
@@ -48,7 +84,7 @@
 
 ### publisher
 - [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
- - note: this data doesn't have singnal states(RED/GREEN/YELLOW/NONE).
+    - **NOTE:** Thease don't have singnal states(RED/GREEN/YELLOW/NONE).
 
 # Planning
 ## Waypoint Loader[waypoint_loader]
