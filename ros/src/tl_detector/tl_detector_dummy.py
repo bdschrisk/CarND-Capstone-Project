@@ -110,7 +110,7 @@ class TLDetector(object):
         closest_dist = 999999.
         closest_wp = None
 
-        wp_len = len(self.base_waypoints.waypoints)  
+        wp_len = len(self.base_waypoints.waypoints)
         for i in range(wp_len):
             base_wp_x = self.base_waypoints.waypoints[i].pose.pose.position.x
             base_wp_y = self.base_waypoints.waypoints[i].pose.pose.position.y
@@ -195,6 +195,9 @@ class TLDetector(object):
         """
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
+        if self.base_waypoints == None :
+            return -1, TrafficLight.UNKNOWN
+
         if self.position == None :
             return -1, TrafficLight.UNKNOWN
 
@@ -216,10 +219,17 @@ class TLDetector(object):
         if closest_wp == -1:
             return -1, TrafficLight.UNKNOWN
 
-        dist = self.distance(self.base_waypoints.waypoints, car_position, closest_wp) 
+        sl_wp = self.get_closest_waypoint(
+                    stop_line_positions[tl_idx][0], 
+                    stop_line_positions[tl_idx][1]
+                    )
+        if sl_wp <= car_position:
+            return -1, TrafficLight.UNKNOWN
+
+        dist = self.distance(self.base_waypoints.waypoints, car_position, sl_wp) 
         if dist < 50.0:
             light = True
-            light_wp = closest_wp
+            light_wp = sl_wp
             state = self.lights[tl_idx].state
             # rospy.loginfo("now = %d, light = %d, dist = %d, state = %d", car_position, light_wp, dist, state) 
             return light_wp, state
