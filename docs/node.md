@@ -1,4 +1,4 @@
-# Car/Simulator
+# Site/Simulator
 
 ## styx_server[SIM ONLY]
 
@@ -52,6 +52,18 @@ projection_matrix:↲
 
 ### publisher
 - [`/camera_info[sensor_msgs/CameraInfo]`](./msg.md#camera_info)
+
+## image_proc[SITE ONLY]
+
+### subscriber 
+- `image_raw[sensor_msgs/Image]` - Raw image stream from the camera driver.
+-  [`camera_info (sensor_msgs/CameraInfo)`] (./msg.md#camera_info) - Camera metadata.
+
+### publisher
+- [`image_mono (sensor_msgs/Image)`] - Monochrome unrectified image.
+- [`image_rect (sensor_msgs/Image)`] - Monochrome rectified image.
+- [`image_color(sensor_msgs/Image)`](./msg.md#image_color) - Color unrectified image.
+- [`image_rect_color (sensor_msgs/Image)`] - Color rectified image.
 
 # Perception
 
