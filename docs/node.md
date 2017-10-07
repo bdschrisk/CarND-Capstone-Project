@@ -51,7 +51,7 @@ projection_matrix:↲
 - None
 
 ### publisher
-- [camera_info]
+- [`/camera_info[sensor_msgs/CameraInfo]`](./msg.md#camera_info)
 
 # Perception
 
