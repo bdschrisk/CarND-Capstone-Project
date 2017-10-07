@@ -62,7 +62,7 @@ projection_matrix:↲
 ### publisher
 - `image_mono[sensor_msgs/Image]` - Monochrome unrectified image.
 - `image_rect[sensor_msgs/Image]` - Monochrome rectified image.
-- `image_color[sensor_msgs/Image]`(./msg.md#image_color) - Color unrectified image.
+- [`image_color[sensor_msgs/Image]`](./msg.md#image_color) - Color unrectified image.
 - `image_rect_color[sensor_msgs/Image]` - Color rectified image.
 
 # Perception
