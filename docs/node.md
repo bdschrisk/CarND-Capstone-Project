@@ -1,6 +1,6 @@
 # Car/Simulator
 
-## styx_server
+## styx_server[SIM ONLY]
 
 ### subscriber
 - [`/vehicle/steering_cmd[dbw_mkz_msgs/SteeringCmd]`](./msg.md#steering_cmd)
@@ -20,7 +20,7 @@
 - [`/vehicle/dbw_enabled[std_msgs/Bool]`](./msg.md#dbw_enabled)
 - [`/image_color[sensor_msgs/Image]`](./msg.md#image_color)
 
-## camera_info_publisher
+## camera_info_publisher[SITE ONLY]
 
 ### subscriber 
 - None
@@ -41,13 +41,14 @@
 ### publisher
 - [`/traffic_waypoint[std_msgs/Int32]`](./msg.md#traffic_waypoint)
 
-## tl_publisher
+## Light Publisher[tl_publisher][SITE ONLY]
 
 ### subscriber 
 - None
 
 ### publisher
 - [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
+-- note: this data doesn't have singnal states(RED/GREEN/YELLOW/NONE).
 
 # Planning
 ## Waypoint Loader[waypoint_loader]
