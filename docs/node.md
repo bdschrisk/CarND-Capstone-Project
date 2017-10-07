@@ -48,7 +48,7 @@
 
 ### publisher
 - [`/vehicle/traffic_lights[styx_msgs/TrafficLightArray]`](./msg.md#traffic_lights)
--- note: this data doesn't have singnal states(RED/GREEN/YELLOW/NONE).
+ - note: this data doesn't have singnal states(RED/GREEN/YELLOW/NONE).
 
 # Planning
 ## Waypoint Loader[waypoint_loader]
