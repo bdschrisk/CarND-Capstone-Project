@@ -57,13 +57,13 @@ projection_matrix:↲
 
 ### subscriber 
 - `image_raw[sensor_msgs/Image]` - Raw image stream from the camera driver.
--  [`camera_info (sensor_msgs/CameraInfo)`] (./msg.md#camera_info) - Camera metadata.
+-  [`camera_info[sensor_msgs/CameraInfo]`](./msg.md#camera_info) - Camera metadata.
 
 ### publisher
-- [`image_mono (sensor_msgs/Image)`] - Monochrome unrectified image.
-- [`image_rect (sensor_msgs/Image)`] - Monochrome rectified image.
-- [`image_color(sensor_msgs/Image)`](./msg.md#image_color) - Color unrectified image.
-- [`image_rect_color (sensor_msgs/Image)`] - Color rectified image.
+- `image_mono[sensor_msgs/Image]` - Monochrome unrectified image.
+- `image_rect[sensor_msgs/Image]` - Monochrome rectified image.
+- `image_color[sensor_msgs/Image]`(./msg.md#image_color) - Color unrectified image.
+- `image_rect_color[sensor_msgs/Image]` - Color rectified image.
 
 # Perception
 
@@ -112,8 +112,8 @@ stop_line_positions:↲
 ### subscriber 
 - [`/current_pose[geometry_msgs/PoseStamped]`](./msg.md#current_pose)
 - [`/base_waypoints[styx_msgs/Lane]`](./msg.md#base_waypoints)
-- **ToDo** [`/vehicle/obstacle[geometry_msgs/PoseStamped]`](./msg.md#obstacle)
-- **ToDo** [`/traffic_waypoint[std_msgs/Int32]`](./msg.md#traffic_waypoint)
+- [`/vehicle/obstacle[geometry_msgs/PoseStamped]`](./msg.md#obstacle)
+- [`/traffic_waypoint[std_msgs/Int32]`](./msg.md#traffic_waypoint)
 
 ### publisher
 - [`/final_waypoints[styx_msgs/Lane]`](./msg.md#final_waypoints)
@@ -123,8 +123,8 @@ stop_line_positions:↲
 ## DBW Node[dbw_node]
 ### subscriber 
 - [`/vehicle/dbw_enabled[std_msgs/Bool]`](./msg.md#dbw_enabled)
-- **ToDo**[`/twist_cmd[geometry_msgs/TwistStamped]`](./msg.md#twist_cmd)
-- **ToDo**[`/current_velocity[geometry_msgs/TwistStamped]`](./msg.md#current_velocity)
+- [`/twist_cmd[geometry_msgs/TwistStamped]`](./msg.md#twist_cmd)
+- [`/current_velocity[geometry_msgs/TwistStamped]`](./msg.md#current_velocity)
 
 ### publisher
 - [`/vehicle/steering_cmd[dbw_mkz_msgs/ThrottleCmd]`](./msg.md#steering_cmd)
