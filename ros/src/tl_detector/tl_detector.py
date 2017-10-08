@@ -11,6 +11,10 @@ import tf
 import cv2
 import yaml
 
+from math import *
+from scipy import spatial
+import numpy as np
+
 STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
@@ -23,7 +27,7 @@ class TLDetector(object):
         self.lights = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -57,8 +61,24 @@ class TLDetector(object):
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
 
+        pointsarr = []
+        for i in range(len(self.waypoints)):
+            pointsarr.append([self.waypoints[i].pose.pose.position.x, self.waypoints[i].pose.pose.position.y])
+        
+        # initialize light KD tree
+        self.waypointsKD = spatial.KDTree(np.asarray(pointsarr), leafsize=10)
+        self.base_waypoints_sub.unregister()
+
     def traffic_cb(self, msg):
         self.lights = msg.lights
+
+        lightsarr = []
+        for i in range(len(self.lights)):
+            lightsa.append([self.lights[i].pose.pose.position.x, self.lights[i].pose.pose.position.y])
+        
+        # initialize light KD tree
+        self.lightKD = spatial.KDTree(np.asarray(lightsarr), leafsize=10)
+
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -100,10 +120,11 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
+        
+        wpi = self.lightKD.query([pose.position.x, pose.position.y], k=1])
 
-
+        return wpi
+    
     def project_to_image_plane(self, point_in_world):
         """Project point from 3D world coordinates to 2D camera image location
 
@@ -139,7 +160,7 @@ class TLDetector(object):
         y = 0
 
         return (x, y)
-
+    
     def get_light_state(self, light):
         """Determines the current color of the traffic light
 
