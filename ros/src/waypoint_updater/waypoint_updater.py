@@ -66,7 +66,6 @@ class WaypointUpdater(object):
     def traffic_gt_cb(self, msg):
         self.traffic_gt = msg
         self.base_waypoints_sub.unregister()
-        # self.traffic_gt.lights[0].state = 2
 
     def velocity_cb(self, msg):
         # obtain the current velocity
@@ -83,24 +82,52 @@ class WaypointUpdater(object):
             self.orientation.x, self.orientation.y, self.orientation.z, self.orientation.w])
         self.yaw = yaw
 
+    def traffic_light_gap(self):
+
+
+        gap_till_traffic_light = math.sqrt((self.position.x - self.traffic_gt.lights[self.closest_traffic_light_wp].pose.pose.position.x)**2 + 
+                                                (self.position.y - self.traffic_gt.lights[self.closest_traffic_light_wp].pose.pose.position.y)**2)
+        
+
+        rospy.logerr("LOG~1: " + str(gap_till_traffic_light))
+        return gap_till_traffic_light
+
     def get_waypoints(self):
+
         self.final_waypoints = []
+            
+        current_gap = self.traffic_light_gap()
+
+        rospy.logerr(str(current_gap))
+
         for i in range(LOOKAHEAD_WPS):
+            
             wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
+
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
-            if self.current_linear_velocity < 5.0 :
+
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and current_gap < 30.:
+                l_vel = 0.
+                a_vel = 0.
+
+            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and current_gap < 30.:
+                l_vel = self.current_linear_velocity / 2.
+                a_vel = 0.
+
+            elif self.current_linear_velocity < 5.0 :
                 l_vel =  self.current_linear_velocity + 0.5
+                a_vel = angle * dist / l_vel;
             else:
                 l_vel = 5.0
+                a_vel = angle * dist / l_vel;
 
-            a_vel = angle * dist / l_vel;
+            
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
             self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
 
-            if self.traffic_gt.lights[self.closest_traffic_light_wp].state != 0:
-                self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
+            self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
             
-            # elif self.traffic_gt.lights[0].state == 0:
+
                            
 
     def publish_final_waypoints(self):
