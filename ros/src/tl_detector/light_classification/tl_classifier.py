@@ -32,15 +32,15 @@ class TLClassifier(object):
 
         """
 
-
         result = TrafficLight.UNKNOWN
 
         msize = image.shape[0]
 
         predictions = self.model.predict(image[:, :, :, 0:3], batch_size=msize)
-        for i in range(predictions.shape[0]):
-            pred_idx = np.argmax(predictions[i])
-        #TODO Add total prob
+        predictions = np.sum(predictions, axis=0, keepdims=True)
+        pred_idx = np.argmax(predictions)
+        
         result = self.map_label(pred_idx)
-
+        rospy.loginfo("[Classifier] TL Predicted: " + self.classes[pred_idx])
+        
         return result

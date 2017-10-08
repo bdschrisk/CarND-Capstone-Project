@@ -56,10 +56,14 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
 
+        self.busy = False
+
+        self.stoplineKD = spatial.KDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
+
         rospy.spin()
 
     def pose_cb(self, msg):
-        self.pose = msg
+        self.pose = msg.pose
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints.waypoints
@@ -124,7 +128,7 @@ class TLDetector(object):
 
         """
         
-        wpi = self.waypointsKD.query([pose.position.x, pose.position.y], k=1)
+        wpi = self.waypointsKD.query([pose.position.x, pose.position.y], k=1)[1]
 
         return wpi
     
@@ -174,7 +178,9 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        if(not self.has_image):
+        self.busy = True
+
+        if (not self.has_image):
             self.prev_light_loc = None
             return False
 
@@ -193,7 +199,10 @@ class TLDetector(object):
         #TODO use light location to zoom in on traffic light in image
         traffic_lights = self.traffic_light_detector.detect_traffic_lights(cv_image)
         #Get classification
-        return self.light_classifier.get_classification(traffic_lights)
+        result = self.light_classifier.get_classification(cv_image)
+        self.busy = False
+
+        return result
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -208,15 +217,28 @@ class TLDetector(object):
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
-        if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
-
-        #TODO find the closest visible traffic light (if one exists)
-
+        
+        if (self.pose and not self.busy):
+            car_position = self.get_closest_waypoint(self.pose)
+            rospy.loginfo("[TLDetector] -> car position wp index: " + str(car_position))
+            #TODO find the closest visible traffic light (if one exists)
+            car_pose = [self.waypoints[car_position].pose.pose.position.x, self.waypoints[car_position].pose.pose.position.y]
+            rospy.loginfo("[TLDetector] -> car pose: " + str(car_pose))
+            tl_delta, light_wp = self.lightKD.query(car_pose, k = 1)
+            rospy.loginfo("[TLDetector] -> nearest TL wp index: " + str(light_wp) + ", distance: " + str(tl_delta) + "m")
+            light = self.lights[light_wp]
+            
+            if (tl_delta >= 10):
+                light = None
+        
         if light:
+            rospy.loginfo("[TLDetector] -> approaching traffic light: " + str(light.state))
+            light_pose = [light.pose.pose.position.x, light.pose.pose.position.y]
+            light_wp = self.stoplineKD.query(light_pose, k = 1)
             state = self.get_light_state(light)
             return light_wp, state
-        self.waypoints = None
+
+        #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
