@@ -7,6 +7,7 @@ from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
+from light_detection.tl_detection import TLDetection
 import tf
 import cv2
 import yaml
@@ -43,6 +44,8 @@ class TLDetector(object):
         self.config = yaml.load(config_string)
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
+
+        self.traffic_light_detector= TLDetection()
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
@@ -188,9 +191,9 @@ class TLDetector(object):
         x, y = self.project_to_image_plane(light.pose.pose.position)
 
         #TODO use light location to zoom in on traffic light in image
-
+        traffic_lights = detector.detect_traffic_lights(cv_image)
         #Get classification
-        return self.light_classifier.get_classification(cv_image)
+        return self.light_classifier.get_classification(traffic_lights)
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its

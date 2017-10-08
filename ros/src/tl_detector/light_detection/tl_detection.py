@@ -90,8 +90,7 @@ class TLDetection(object):
         return boxes, scores, classes, times
 
         
-    def detect_traffic_lights(self,test_image):
-        image = Image.open(test_image)
+    def detect_traffic_lights(self,image):
         width = image.size[0]
         height = image.size[1]
         cropped_image = image.crop(
