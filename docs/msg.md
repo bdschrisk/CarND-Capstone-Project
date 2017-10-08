@@ -257,7 +257,7 @@ uint8 count
 ~~~
 
 <a name="steering_report"></a>
-# /vehicle/steering_report
+# topic:/vehicle/steering_report
 ## dbw_mkz_msgs/SteeringReport
 ~~~
 std_msgs/Header header
@@ -275,4 +275,21 @@ bool fault_wdc
 bool fault_bus1
 bool fault_bus2
 bool fault_calibration
+~~~
+
+<a name="camera_info"></a>
+# topic:/camera_info
+## sensor_msgs/CameraInfo
+~~~
+std_msgs/Header header
+uint32 height
+uint32 width
+string distortion_model
+float64[] D
+float64[9] K
+float64[9] R
+float64[12] P
+uint32 binning_x
+uint32 binning_y
+sensor_msgs/RegionOfInterest roi
 ~~~
