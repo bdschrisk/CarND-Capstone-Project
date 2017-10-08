@@ -56,15 +56,17 @@ class WaypointUpdater(object):
         ## Main Loop    
         rate = rospy.Rate(2.0)
         while not rospy.is_shutdown():
-            if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state:
+            if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state and self.traffic_gt:
                 self.closest_wp = self.closest_node()
+                self.closest_traffic_light_wp = self.closest_traffic_light()
                 self.get_waypoints()
                 self.publish_final_waypoints()
             rate.sleep()
 
     def traffic_gt_cb(self, msg):
         self.traffic_gt = msg
-        self.traffic_gt.lights[0].state = 2
+        self.base_waypoints_sub.unregister()
+        # self.traffic_gt.lights[0].state = 2
 
     def velocity_cb(self, msg):
         # obtain the current velocity
@@ -95,9 +97,11 @@ class WaypointUpdater(object):
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
             self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
 
-
-            if self.traffic_gt.lights[0].state == 2:
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state != 0:
                 self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
+            
+            # elif self.traffic_gt.lights[0].state == 0:
+                           
 
     def publish_final_waypoints(self):
         lane = Lane()
@@ -180,6 +184,41 @@ class WaypointUpdater(object):
             closest_wp = (closest_wp + 1) % wp_len
 
         return closest_wp
+
+    def closest_traffic_light(self):
+
+        # current position
+        cur_pos_x = self.position.x
+        cur_pos_y = self.position.y
+
+        # we can assume the track waypoints are already in a cyclic order
+        cur_o = self.orientation
+        cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
+        cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
+
+        closest_dist = 999999.
+        closest_wp = None
+
+        wp_len = len(self.traffic_gt.lights)  
+        for i in range(wp_len):
+            base_wp_x = self.traffic_gt.lights[i].pose.pose.position.x
+            base_wp_y = self.traffic_gt.lights[i].pose.pose.position.y
+            dist = math.sqrt(math.pow(cur_pos_x - base_wp_x, 2) + math.pow(cur_pos_y - base_wp_y, 2))
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_wp = i
+
+        #Check if waypoint is ahead of vehicle
+        closest_wp_x = self.traffic_gt.lights[closest_wp].pose.pose.position.x
+        closest_wp_y = self.traffic_gt.lights[closest_wp].pose.pose.position.y
+        dist_ahead = ((closest_wp_x - cur_pos_x)* math.cos(cur_yaw) +
+                  (closest_wp_y - cur_pos_y)* math.sin(cur_yaw)) > 0.0
+
+        if not dist_ahead:
+            closest_wp = (closest_wp + 1) % wp_len
+
+        return closest_wp
+
 
 if __name__ == '__main__':
     try:
