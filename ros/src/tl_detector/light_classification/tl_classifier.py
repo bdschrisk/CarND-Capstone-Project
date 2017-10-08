@@ -1,16 +1,26 @@
-from styx_msgs.msg import TrafficLight
+import os
+import rospy
+import numpy as np
 
-from 
+from styx_msgs.msg import TrafficLight
+from include.model.KaNet import KaNet
 
 class TLClassifier(object):
     def __init__(self):
-        
-        # TODO Load trained model
+        # load params
+        self.classes = rospy.get_param("~tl_classes")
+        self.values = rospy.get_param("~tl_values")
+        self.weights_file = rospy.get_param("~tl_weights_file")
 
-        # TODO Get parameters of model from ROS param server
+        self.model = KaNet(len(self.classes), (None, None, 3), 1.0, 0)
+        self.model.load_weights(self.weights_file)
+    
+    def map_label(self, output):
+        """ Maps the argmax of model output to the traffic light label """
+        val = self.values[output]
 
-        
-
+        return np.uint8(val)
+    
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
 
@@ -21,5 +31,13 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #TODO implement light color prediction
-        return TrafficLight.UNKNOWN
+
+
+        result = TrafficLight.UNKNOWN
+
+        pred = self.model.predict(image[None, :, :, 0:3], batch_size=1)[0]
+        pred_idx = np.argmax(pred)
+
+        result = self.map_label(pred_idx)
+
+        return result
