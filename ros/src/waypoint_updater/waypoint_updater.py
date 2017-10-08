@@ -41,6 +41,7 @@ class WaypointUpdater(object):
 
         # for debugging and testing
         rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_gt_cb)
+        self.traffic_gt = None
 
         ### Publishers
         # publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
@@ -63,7 +64,8 @@ class WaypointUpdater(object):
 
     def traffic_gt_cb(self, msg):
         self.traffic_gt = msg
-        
+        self.traffic_gt.lights[0].state = 2
+
     def velocity_cb(self, msg):
         # obtain the current velocity
         self.velocity_cb_state = True 
@@ -92,7 +94,10 @@ class WaypointUpdater(object):
             a_vel = angle * dist / l_vel;
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
             self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
-            self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
+
+
+            if self.traffic_gt.lights[0].state == 2:
+                self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
 
     def publish_final_waypoints(self):
         lane = Lane()
