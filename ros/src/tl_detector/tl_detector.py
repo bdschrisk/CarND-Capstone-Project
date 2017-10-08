@@ -45,7 +45,7 @@ class TLDetector(object):
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
-        self.traffic_light_detector= TLDetection()
+        self.traffic_light_detector = TLDetection()
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
@@ -62,7 +62,7 @@ class TLDetector(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
-        self.waypoints = waypoints
+        self.waypoints = waypoints.waypoints
 
         pointsarr = []
         for i in range(len(self.waypoints)):
@@ -77,7 +77,7 @@ class TLDetector(object):
 
         lightsarr = []
         for i in range(len(self.lights)):
-            lightsa.append([self.lights[i].pose.pose.position.x, self.lights[i].pose.pose.position.y])
+            lightsarr.append([self.lights[i].pose.pose.position.x, self.lights[i].pose.pose.position.y])
         
         # initialize light KD tree
         self.lightKD = spatial.KDTree(np.asarray(lightsarr), leafsize=10)
@@ -124,7 +124,7 @@ class TLDetector(object):
 
         """
         
-        wpi = self.lightKD.query([pose.position.x, pose.position.y], k=1])
+        wpi = self.waypointsKD.query([pose.position.x, pose.position.y], k=1)
 
         return wpi
     
@@ -191,7 +191,7 @@ class TLDetector(object):
         x, y = self.project_to_image_plane(light.pose.pose.position)
 
         #TODO use light location to zoom in on traffic light in image
-        traffic_lights = detector.detect_traffic_lights(cv_image)
+        traffic_lights = self.traffic_light_detector.detect_traffic_lights(cv_image)
         #Get classification
         return self.light_classifier.get_classification(traffic_lights)
 

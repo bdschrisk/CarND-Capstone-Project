@@ -35,9 +35,12 @@ class TLClassifier(object):
 
         result = TrafficLight.UNKNOWN
 
-        pred = self.model.predict(image[None, :, :, 0:3], batch_size=1)[0]
-        pred_idx = np.argmax(pred)
+        msize = image.shape[0]
 
+        predictions = self.model.predict(image[:, :, :, 0:3], batch_size=msize)
+        for i in range(predictions.shape[0]):
+            pred_idx = np.argmax(predictions[i])
+        #TODO Add total prob
         result = self.map_label(pred_idx)
 
         return result
