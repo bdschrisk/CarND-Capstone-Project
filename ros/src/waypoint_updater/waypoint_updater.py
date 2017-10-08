@@ -2,7 +2,7 @@
 
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
-from styx_msgs.msg import Lane, Waypoint
+from styx_msgs.msg import Lane, Waypoint, TrafficLightArray
 from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
 
@@ -38,6 +38,10 @@ class WaypointUpdater(object):
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
 
+
+        # for debugging and testing
+        rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_gt_cb)
+
         ### Publishers
         # publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -57,6 +61,9 @@ class WaypointUpdater(object):
                 self.publish_final_waypoints()
             rate.sleep()
 
+    def traffic_gt_cb(self, msg):
+        self.traffic_gt = msg
+        
     def velocity_cb(self, msg):
         # obtain the current velocity
         self.velocity_cb_state = True 
