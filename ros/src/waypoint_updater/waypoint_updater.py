@@ -24,7 +24,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -52,6 +52,7 @@ class WaypointUpdater(object):
         self.final_waypoints = None
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
+        self.gap_till_traffic_light = None
 
         ## Main Loop    
         rate = rospy.Rate(2.0)
@@ -59,6 +60,7 @@ class WaypointUpdater(object):
             if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state and self.traffic_gt:
                 self.closest_wp = self.closest_node()
                 self.closest_traffic_light_wp = self.closest_traffic_light()
+                self.traffic_light_gap()
                 self.get_waypoints()
                 self.publish_final_waypoints()
             rate.sleep()
@@ -85,20 +87,15 @@ class WaypointUpdater(object):
     def traffic_light_gap(self):
 
 
-        gap_till_traffic_light = math.sqrt((self.position.x - self.traffic_gt.lights[self.closest_traffic_light_wp].pose.pose.position.x)**2 + 
+        self.gap_till_traffic_light =  math.sqrt((self.position.x - self.traffic_gt.lights[self.closest_traffic_light_wp].pose.pose.position.x)**2 + 
                                                 (self.position.y - self.traffic_gt.lights[self.closest_traffic_light_wp].pose.pose.position.y)**2)
         
-
-        rospy.logerr("LOG~1: " + str(gap_till_traffic_light))
-        return gap_till_traffic_light
 
     def get_waypoints(self):
 
         self.final_waypoints = []
-            
-        current_gap = self.traffic_light_gap()
-
-        rospy.logerr(str(current_gap))
+        
+        # rospy.logerr(str(self.gap_till_traffic_light))
 
         for i in range(LOOKAHEAD_WPS):
             
@@ -106,11 +103,11 @@ class WaypointUpdater(object):
 
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 
-            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and current_gap < 30.:
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0:
                 l_vel = 0.
                 a_vel = 0.
 
-            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and current_gap < 30.:
+            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1:
                 l_vel = self.current_linear_velocity / 2.
                 a_vel = 0.
 
