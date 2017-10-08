@@ -10,6 +10,7 @@ from light_classification.tl_classifier import TLClassifier
 from light_detection.tl_detection import TLDetection
 import tf
 import cv2
+import PIL
 import yaml
 
 from math import *
@@ -197,9 +198,12 @@ class TLDetector(object):
         x, y = self.project_to_image_plane(light.pose.pose.position)
 
         #TODO use light location to zoom in on traffic light in image
-        traffic_lights = self.traffic_light_detector.detect_traffic_lights(cv_image)
+        image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        image = PIL.Image.fromarray(image)
+        traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
+        cv_images = [cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR) for image in traffic_lights]
         #Get classification
-        result = self.light_classifier.get_classification(cv_image)
+        result = self.light_classifier.get_classification(cv_images)
         self.busy = False
 
         return result
