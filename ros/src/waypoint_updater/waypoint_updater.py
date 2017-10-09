@@ -45,6 +45,7 @@ class WaypointUpdater(object):
         ### Member variables
         self.base_waypoints = None
         self.final_waypoints = None
+        self.traffic_waypoint = -1
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
 
@@ -74,13 +75,44 @@ class WaypointUpdater(object):
 
     def get_waypoints(self):
         self.final_waypoints = []
-        for i in range(LOOKAHEAD_WPS):
+        decel = False
+
+        if self.traffic_waypoint > 0 :
+            decel = True;
+            tar_vel = 0.0
+            wp_len = self.traffic_waypoint - self.closest_wp;
+            if wp_len < 0:
+                wp_len += len(self.base_waypoints.waypoints)
+            rospy.loginfo("traffic_waypoint = %d, diff = %d", self.traffic_waypoint, wp_len);
+        else :
+            decel = False
+            tar_vel = 5.0
+            wp_len = LOOKAHEAD_WPS
+
+        cur_vel = self.current_linear_velocity
+        l_vel = cur_vel
+
+        if wp_len != 0: 
+            d_vel = abs(cur_vel - tar_vel) / wp_len
+        else: 
+            d_vel = 0
+
+        for i in range(wp_len):
             wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
-            if self.current_linear_velocity < 5.0 :
-                l_vel =  self.current_linear_velocity + 0.5
-            else:
-                l_vel = 5.0
+
+            if decel :
+                l_vel -= d_vel
+                dist = self.distance(self.base_waypoints.waypoints, wp_index, self.traffic_waypoint)
+                if dist > 5.0 and l_vel < 2.0:
+                    l_vel = 2.0
+            else :
+                l_vel += 1.0
+                if tar_vel < l_vel:
+                    l_vel = tar_vel
+
+            if l_vel <= 0.0:
+                l_vel = 0.01
 
             a_vel = angle * dist / l_vel;
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
@@ -102,7 +134,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.traffic_waypoint = int(msg.data)
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
