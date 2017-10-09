@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import rospy
+from image_geometry.cameramodels import PinholeCameraModel
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
 from styx_msgs.msg import TrafficLightArray, TrafficLight
 from styx_msgs.msg import Lane
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
 from light_detection.tl_detection import TLDetection
@@ -48,7 +49,7 @@ class TLDetector(object):
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
-        #self.traffic_light_detector = TLDetection()
+        self.traffic_light_detector = TLDetection()
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
@@ -58,6 +59,10 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
+
+        self.camera_model = PinholeCameraModel()
+
+        sub7 = rospy.Subscriber('camera_info', CameraInfo, self.camera_cb)
 
         self.stoplineKD = spatial.KDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
 
@@ -89,6 +94,8 @@ class TLDetector(object):
         # initialize light KD tree
         self.lightKD = spatial.KDTree(np.asarray(lightsarr), leafsize=10)
 
+    def camera_cb(self, msg):
+        self.camera_model.fromCameraInfo(msg)
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -170,8 +177,10 @@ class TLDetector(object):
 
         #TODO Use tranform and rotation to calculate 2D position of light in image
 
-        x = 0
-        y = 0
+        point = self.camera_model.project3dToPixel(point_in_world)
+
+        x = point(0)
+        y = point(1)
 
         return (x, y)
     
@@ -207,11 +216,12 @@ class TLDetector(object):
         #image = np.asarray(image, dtype=np.float32)
         cv_image = cv_image.astype(np.uint8)
         image = PIL.Image.fromarray(cv_image)
+
         traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
         
         #traffic_lights = np.asarray(traffic_lights, dtype=np.float32)
 
-        #Get classification
+        # Get classification
         #result = self.light_classifier.get_classification([image])
         result = self.light_classifier.get_classification(traffic_lights)
 
