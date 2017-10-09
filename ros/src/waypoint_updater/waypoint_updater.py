@@ -50,7 +50,6 @@ class WaypointUpdater(object):
         ### Member variables
         self.base_waypoints = None
         self.final_waypoints = None
-        self.traffic_waypoint = -1
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
 
@@ -100,24 +99,24 @@ class WaypointUpdater(object):
         rospy.logerr("in gwps function: " + str(self.gap_till_traffic_light))
 
         for i in range(LOOKAHEAD_WPS):
+            
             wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
 
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 
-            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 30.:
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 35.:
                 l_vel = 0.
                 a_vel = 0.
 
-            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 30.:
-                l_vel = self.current_linear_velocity / 10.
+            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 35.:
+                l_vel = self.current_linear_velocity / 2.
                 a_vel = 0.
 
-            elif self.current_linear_velocity < 15.0 :
+            elif self.current_linear_velocity < 5.0 :
                 l_vel =  self.current_linear_velocity + 0.5
                 a_vel = angle * dist / l_vel;
-
             else:
-                l_vel = 15.0
+                l_vel = 5.0
                 a_vel = angle * dist / l_vel;
 
             
@@ -144,7 +143,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        self.traffic_waypoint = int(msg.data)
+        pass
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
