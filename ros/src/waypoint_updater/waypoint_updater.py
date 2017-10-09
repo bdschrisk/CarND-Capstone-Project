@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
-from styx_msgs.msg import Lane, Waypoint
+from styx_msgs.msg import Lane, Waypoint, TrafficLight
 from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
 
+import copy
 import math
 import numpy as np
 
@@ -26,6 +27,13 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
+class CarState:
+    ACCEL = 0
+    DECEL = 1
+    STOP  = 2
+    KEEP  = 3
+
+
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
@@ -45,14 +53,23 @@ class WaypointUpdater(object):
         ### Member variables
         self.base_waypoints = None
         self.final_waypoints = None
-        self.traffic_waypoint = -1
+        self.traffic_wp = -1
+        self.light_wp = -1
+        self.closest_wp = -1
+        self.light_state = TrafficLight.UNKNOWN
+        self.light_change = False
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
+        self.traffic_cb_state = False 
+        self.ignore_count = 0
+        self.wp_len = 0
+        self.car_state = CarState.STOP
 
         ## Main Loop    
         rate = rospy.Rate(2.0)
         while not rospy.is_shutdown():
-            if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state:
+            if self.base_waypoints and self.velocity_cb_state and \
+                     self.pose_cb_state and self.traffic_cb_state:
                 self.closest_wp = self.closest_node()
                 self.get_waypoints()
                 self.publish_final_waypoints()
@@ -76,49 +93,111 @@ class WaypointUpdater(object):
     def get_waypoints(self):
         self.final_waypoints = []
         decel = False
+        stop =  False
+        tmp_wps = self.base_waypoints.waypoints
 
-        if self.traffic_waypoint > 0 :
-            decel = True;
-            tar_vel = 0.0
-            wp_len = self.traffic_waypoint - self.closest_wp;
-            if wp_len < 0:
-                wp_len += len(self.base_waypoints.waypoints)
-            rospy.loginfo("traffic_waypoint = %d, diff = %d", self.traffic_waypoint, wp_len);
-        else :
-            decel = False
-            tar_vel = 5.0
-            wp_len = LOOKAHEAD_WPS
+        car_x = self.position.x
+        car_y = self.position.y
+        car_yaw = self.yaw
+        car_s = 0
+        car_s_list = []
+        car_dist_list = []
+        car_angle_list = []
+
+        for i in range(self.lookahead_wps):
+            wp_index = (self.closest_wp + i + 1) % self.wp_len
+            dist, angle = self.get_next_target(tmp_wps[wp_index], car_x, car_y, car_yaw)
+            car_s += dist
+            car_s_list.append(car_s)
+            car_dist_list.append(dist)
+            car_angle_list.append(angle)
+
+            next_index = (self.closest_wp + i + 2) % self.wp_len
+            car_x = tmp_wps[next_index].pose.pose.position.x
+            car_y = tmp_wps[next_index].pose.pose.position.y
+            car_yaw = (car_yaw + angle) % (2 * np.pi)
+
+        import warnings
+        warnings.simplefilter('ignore', np.RankWarning)
+        poly = np.polyfit(car_s_list, car_angle_list, 2)
+        self.str_poly = np.poly1d(poly)
 
         cur_vel = self.current_linear_velocity
-        l_vel = cur_vel
 
-        if wp_len != 0: 
-            d_vel = abs(cur_vel - tar_vel) / wp_len
-        else: 
-            d_vel = 0
+        if self.light_wp != -1 and self.ignore_count == 0:
+            dist = self.distance(tmp_wps, self.closest_wp, self.light_wp)
+            if self.light_change == True and self.light_state == TrafficLight.GREEN \
+                and cur_vel < self.speed_limit * 0.2:
+                self.car_state = CarState.ACCEL
+                self.ignore_count = 8
+                rospy.loginfo("phase1:ACCEL-TURN BLUE")
+            elif self.light_change == True and self.light_state == TrafficLight.RED \
+                and dist > 12.0:
+                self.car_state = CarState.DECEL
+                self.ignore_count = 2
+                rospy.loginfo("phase2:DECEL-TURN YELLOW")
+            elif self.light_state == TrafficLight.RED \
+                and dist < 3.0:
+                self.car_state = CarState.STOP
+                self.ignore_count = 0
+                rospy.loginfo("phase3:STOP")
+            elif self.light_state == TrafficLight.RED \
+                and dist < 12.0 and cur_vel < self.speed_limit * 0.6:
+                self.car_state = CarState.KEEP
+                self.ignore_count = 0
+                rospy.loginfo("phase4:KEEP")
+            else:
+                self.car_state = CarState.DECEL
+                self.ignore_count = 0
+                rospy.loginfo("phase5:DECEL-CHECK TRAFFIC LIGHT")
+        else :
+            if self.ignore_count > 0:
+                self.ignore_count -= 1
+            else:
+                self.car_state = CarState.ACCEL
+                rospy.loginfo("phase6:ACCEL")
 
-        for i in range(wp_len):
-            wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
-            dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
+        self.light_change = False
+        
+        for i in range(self.lookahead_wps):
+            wp_index = (self.closest_wp + i + 1) % self.wp_len
+            max_l_vel = self.get_waypoint_velocity(self.base_waypoints.waypoints[wp_index])
+            if self.car_state == CarState.STOP:
+                l_vel = -1.0
+            elif self.car_state == CarState.DECEL:
+                l_vel = min(max(self.decel_poly(dist - car_s_list[i]), self.speed_limit * 0.3), max_l_vel)
+            elif self.car_state == CarState.ACCEL:
+                l_vel = max_l_vel
+            else:
+                l_vel = min(self.current_linear_velocity, self.speed_limit * 0.2)
 
-            if decel :
-                l_vel -= d_vel
-                dist = self.distance(self.base_waypoints.waypoints, wp_index, self.traffic_waypoint)
-                if dist > 5.0 and l_vel < 2.0:
-                    l_vel = 2.0
-            else :
-                l_vel += 1.0
-                if tar_vel < l_vel:
-                    l_vel = tar_vel
+            calc_angle = self.str_poly(car_s_list[i])
+            if calc_angle > 0.0: 
+                tmp_angle = min(self.str_poly(car_s_list[i]), car_angle_list[i])
+            else:
+                tmp_angle = max(self.str_poly(car_s_list[i]), car_angle_list[i])
 
-            if l_vel <= 0.0:
-                l_vel = 0.01
+            if car_dist_list[i] == 0.0:
+                car_dist_list[i] = 0.001
 
-            a_vel = angle * dist / l_vel;
-            self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
-            self.set_waypoint_angular_velocity(self.base_waypoints.waypoints[wp_index], a_vel)
-            self.final_waypoints.append(self.base_waypoints.waypoints[wp_index])
+            a_vel = tmp_angle * l_vel / car_dist_list[i]
 
+            p = Waypoint()
+            p.pose.pose.position.x = self.base_waypoints.waypoints[wp_index].pose.pose.position.x
+            p.pose.pose.position.y = self.base_waypoints.waypoints[wp_index].pose.pose.position.y
+            p.pose.pose.position.z = self.base_waypoints.waypoints[wp_index].pose.pose.position.z
+            p.pose.pose.orientation.x = self.base_waypoints.waypoints[wp_index].pose.pose.orientation.x
+            p.pose.pose.orientation.y = self.base_waypoints.waypoints[wp_index].pose.pose.orientation.y
+            p.pose.pose.orientation.z = self.base_waypoints.waypoints[wp_index].pose.pose.orientation.z
+            p.pose.pose.orientation.w = self.base_waypoints.waypoints[wp_index].pose.pose.orientation.w
+            p.twist.twist.linear.x = l_vel
+            p.twist.twist.linear.y = 0.
+            p.twist.twist.linear.z = 0.
+            p.twist.twist.angular.x = 0.
+            p.twist.twist.angular.y = 0.
+            p.twist.twist.angular.z = a_vel
+            self.final_waypoints.append(p)
+    
     def publish_final_waypoints(self):
         lane = Lane()
         lane.header.frame_id = '/world'
@@ -131,21 +210,91 @@ class WaypointUpdater(object):
         self.base_waypoints = waypoints
         # we only need the message once, unsubscribe after first receive
         self.base_waypoints_sub.unregister()
+        self.wp_len = len(waypoints.waypoints)
+        self.speed_limit = waypoints.waypoints[self.wp_len/2].twist.twist.linear.x
+
+        if self.wp_len < LOOKAHEAD_WPS :
+            self.lookahead_wps = self.wp_len
+        else:
+            self.lookahead_wps = LOOKAHEAD_WPS
+
+        rospy.loginfo("Get base_waypoint, way_points = %d, Speed Limit = %f mps.", self.wp_len, self.speed_limit)
+        rospy.loginfo("ahead_waypoints = %d.", self.lookahead_wps)
+
+        wpx = [50.0,
+               40.0,
+               30.0,
+               20.0,
+               15.0,
+               10.0,
+               7.0,
+               5.0,
+               3.0,
+               0.0,
+               -5.0,
+               -50.0]
+
+        wpy = [ self.speed_limit * 0.9,
+                self.speed_limit * 0.8,
+                self.speed_limit * 0.7,
+                self.speed_limit * 0.6,
+                self.speed_limit * 0.5,
+                self.speed_limit * 0.4,
+                self.speed_limit * 0.3,
+                self.speed_limit * 0.3,
+                self.speed_limit * 0.3,
+                0.0,
+                -1.0,
+                -1.0]
+
+        poly = np.polyfit(np.array(wpx), np.array(wpy), 2)
+        self.decel_poly = np.poly1d(poly)
+        '''
+        rospy.loginfo("wpy[50.] = %f", self.decel_poly(50.))
+        rospy.loginfo("wpy[25.] = %f", self.decel_poly(25.))
+        rospy.loginfo("wpy[10.] = %f", self.decel_poly(10.))
+        rospy.loginfo("wpy[5.]  = %f", self.decel_poly(5.))
+        rospy.loginfo("wpy[0.]  = %f", self.decel_poly(0.))
+        rospy.loginfo("wpy[-5.] = %f", self.decel_poly(-5.))
+        rospy.loginfo("wpy[-50.] = %f", self.decel_poly(-50.))
+        '''
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        self.traffic_waypoint = int(msg.data)
+        # TODO: Callback for /traffic_wp message. Implement
+        str_light = ["RED", "YELLOW", "GREEN", "UNKNOWN", "UNKNOWN"]
+
+        self.traffic_cb_state = True
+
+        self.traffic_wp = int(msg.data)
+        if self.traffic_wp > self.wp_len:
+            if self.light_state != TrafficLight.UNKNOWN:
+                self.light_change = True;
+            self.light_state = TrafficLight.UNKNOWN
+            self.light_wp = -1
+        elif self.traffic_wp > 0:
+            if self.light_state != TrafficLight.RED:
+                self.light_change = True;
+            self.light_state = TrafficLight.RED
+            self.light_wp = self.traffic_wp
+        else:
+            if self.light_state != TrafficLight.GREEN:
+                self.light_change = True;
+            self.light_state = TrafficLight.GREEN
+            self.light_wp = -self.traffic_wp
+
+        #rospy.loginfo("state = %s, light_wp = %d, car_wp = %d.",
+        #    str_light[self.light_state], self.light_wp, self.closest_wp)
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
 
-    def get_next_target(self, waypoint):
+    def get_next_target(self, waypoint, x, y, yaw):
         # convert to local coordinates
-        vx = waypoint.pose.pose.position.x - self.position.x
-        vy = waypoint.pose.pose.position.y - self.position.y
-        lx = vx * np.cos(self.yaw) + vy * np.sin(self.yaw)
-        ly = -vx * np.sin(self.yaw) + vy * np.cos(self.yaw)
+        vx = waypoint.pose.pose.position.x - x
+        vy = waypoint.pose.pose.position.y - y
+        lx = vx * np.cos(yaw) + vy * np.sin(yaw)
+        ly = -vx * np.sin(yaw) + vy * np.cos(yaw)
         dist = math.sqrt(lx * lx + ly * ly)
         angle = np.arctan2(ly, lx)
         return dist, angle
@@ -181,7 +330,7 @@ class WaypointUpdater(object):
         closest_dist = 999999.
         closest_wp = None
 
-        wp_len = len(self.base_waypoints.waypoints)  
+        wp_len = len(self.base_waypoints.waypoints)
         for i in range(wp_len):
             base_wp_x = self.base_waypoints.waypoints[i].pose.pose.position.x
             base_wp_y = self.base_waypoints.waypoints[i].pose.pose.position.y
