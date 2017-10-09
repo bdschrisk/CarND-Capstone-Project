@@ -96,70 +96,29 @@ class WaypointUpdater(object):
     def get_waypoints(self):
 
         self.final_waypoints = []
-<<<<<<< HEAD
         
         rospy.logerr("in gwps function: " + str(self.gap_till_traffic_light))
 
         for i in range(LOOKAHEAD_WPS):
-            
-=======
-        decel = False
-
-        if self.traffic_waypoint > 0 :
-            decel = True;
-            tar_vel = 0.0
-            wp_len = self.traffic_waypoint - self.closest_wp;
-            if wp_len < 0:
-                wp_len += len(self.base_waypoints.waypoints)
-            rospy.loginfo("traffic_waypoint = %d, diff = %d", self.traffic_waypoint, wp_len);
-        else :
-            decel = False
-            tar_vel = 5.0
-            wp_len = LOOKAHEAD_WPS
-
-        cur_vel = self.current_linear_velocity
-        l_vel = cur_vel
-
-        if wp_len != 0: 
-            d_vel = abs(cur_vel - tar_vel) / wp_len
-        else: 
-            d_vel = 0
-
-        for i in range(wp_len):
->>>>>>> 80dfd77d11782879153d15ebcf076f0635683883
             wp_index = (self.closest_wp + i) % len(self.base_waypoints.waypoints)
 
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 
-<<<<<<< HEAD
             if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 30.:
                 l_vel = 0.
                 a_vel = 0.
 
             elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 30.:
-                l_vel = self.current_linear_velocity / 2.
+                l_vel = self.current_linear_velocity / 10.
                 a_vel = 0.
 
-            elif self.current_linear_velocity < 5.0 :
+            elif self.current_linear_velocity < 15.0 :
                 l_vel =  self.current_linear_velocity + 0.5
                 a_vel = angle * dist / l_vel;
-            else:
-                l_vel = 5.0
-                a_vel = angle * dist / l_vel;
-=======
-            if decel :
-                l_vel -= d_vel
-                dist = self.distance(self.base_waypoints.waypoints, wp_index, self.traffic_waypoint)
-                if dist > 5.0 and l_vel < 2.0:
-                    l_vel = 2.0
-            else :
-                l_vel += 1.0
-                if tar_vel < l_vel:
-                    l_vel = tar_vel
 
-            if l_vel <= 0.0:
-                l_vel = 0.01
->>>>>>> 80dfd77d11782879153d15ebcf076f0635683883
+            else:
+                l_vel = 15.0
+                a_vel = angle * dist / l_vel;
 
             
             self.set_waypoint_linear_velocity(self.base_waypoints.waypoints[wp_index], l_vel)
