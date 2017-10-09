@@ -1,10 +1,7 @@
-<<<<<<< HEAD
+
 from yaw_controller import YawController
 from geometry_msgs.msg import PoseStamped, TwistStamped
-
-=======
 import rospy
->>>>>>> 80dfd77d11782879153d15ebcf076f0635683883
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
