@@ -24,7 +24,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -52,7 +52,6 @@ class WaypointUpdater(object):
         self.final_waypoints = None
         self.velocity_cb_state = False 
         self.pose_cb_state = False 
-        self.gap_till_traffic_light = None
 
         ## Main Loop    
         rate = rospy.Rate(2.0)
@@ -60,6 +59,7 @@ class WaypointUpdater(object):
             if self.base_waypoints and self.velocity_cb_state and self.pose_cb_state and self.traffic_gt:
                 self.closest_wp = self.closest_node()
                 self.closest_traffic_light_wp = self.closest_traffic_light()
+                self.gap_till_traffic_light = 50.
                 self.traffic_light_gap()
                 self.get_waypoints()
                 self.publish_final_waypoints()
@@ -95,7 +95,7 @@ class WaypointUpdater(object):
 
         self.final_waypoints = []
         
-        # rospy.logerr(str(self.gap_till_traffic_light))
+        rospy.logerr(str(self.gap_till_traffic_light))
 
         for i in range(LOOKAHEAD_WPS):
             
@@ -103,19 +103,19 @@ class WaypointUpdater(object):
 
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 
-            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 35.:
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 40. and self.gap_till_traffic_light > 20.:
                 l_vel = 0.
                 a_vel = 0.
 
-            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 35.:
-                l_vel = self.current_linear_velocity / 2.
+            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 40. and self.gap_till_traffic_light > 20.:
+                l_vel = 0.
                 a_vel = 0.
 
-            elif self.current_linear_velocity < 5.0 :
+            elif self.current_linear_velocity < 25.0 :
                 l_vel =  self.current_linear_velocity + 0.5
                 a_vel = angle * dist / l_vel;
             else:
-                l_vel = 5.0
+                l_vel = 25.0
                 a_vel = angle * dist / l_vel;
 
             
