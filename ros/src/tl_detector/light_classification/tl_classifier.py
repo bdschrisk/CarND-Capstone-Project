@@ -2,18 +2,29 @@ import os
 import rospy
 import numpy as np
 
+import threading as t
+import tensorflow as tf
+
 from styx_msgs.msg import TrafficLight
 from include.model.KaNet import KaNet
 
 class TLClassifier(object):
     def __init__(self):
+        self.graph = tf.get_default_graph()
+
         # load params
         self.classes = rospy.get_param("~tl_classes")
         self.values = rospy.get_param("~tl_values")
         self.weights_file = rospy.get_param("~tl_weights_file")
+        
+        with self.graph.as_default():
+            self.model = KaNet(len(self.classes), (None, None, 3), 1.0, 0)
+            self.model.load_weights(self.weights_file, by_name=True)
 
-        self.model = KaNet(len(self.classes), (None, None, 3), 1.0, 0)
-        self.model.load_weights(self.weights_file)
+        rospy.loginfo("[TL Classifier] -> Model Loaded!")
+
+        self.busy = False
+        self.state = TrafficLight.UNKNOWN
     
     def map_label(self, output):
         """ Maps the argmax of model output to the traffic light label """
@@ -21,7 +32,29 @@ class TLClassifier(object):
 
         return np.uint8(val)
     
-    def get_classification(self, image):
+    def get_prediction(self, images):
+
+        with self.graph.as_default():
+            predictions = []
+
+            msize = len(images)
+            for i in range(msize):
+                img = np.asarray(images[i])
+                rospy.loginfo("[TL Classifier] -> Input shape: " + str(img.shape))
+                pred = self.model.predict(img[None, :, :, 0:3], batch_size=1)[0]
+                rospy.loginfo("[TL Classifier] -> Prediction: " + str(pred))
+                predictions.append(pred)
+            
+            predictions = np.sum(predictions, axis=0, keepdims=True)
+            pred_idx = np.argmax(predictions)
+            
+            self.state = self.map_label(pred_idx)
+            rospy.loginfo("[TL Classifier] -> TL Predicted: " + self.classes[pred_idx])
+
+            self.busy = False
+            
+    
+    def get_classification(self, images):
         """Determines the color of the traffic light in the image
 
         Args:
@@ -32,15 +65,13 @@ class TLClassifier(object):
 
         """
 
-        result = TrafficLight.UNKNOWN
+        if self.busy:
+            return TrafficLight.UNKNOWN
 
-        msize = image.shape[0]
+        self.busy = True
 
-        predictions = self.model.predict(image[:, :, :, 0:3], batch_size=msize)
-        predictions = np.sum(predictions, axis=0, keepdims=True)
-        pred_idx = np.argmax(predictions)
-        
-        result = self.map_label(pred_idx)
-        rospy.loginfo("[Classifier] TL Predicted: " + self.classes[pred_idx])
-        
-        return result
+        thread = t.Thread(target = self.get_prediction, args=(images,))
+        thread.start()
+        thread.join()
+
+        return self.state
