@@ -204,18 +204,16 @@ class TLDetector(object):
         x, y = self.project_to_image_plane(light.pose.pose.position)
 
         #TODO 
-        image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         #image = np.asarray(image, dtype=np.float32)
-        image = PIL.Image.fromarray(image)
+        image = PIL.Image.fromarray(cv_image)
         
-        #traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
-        #cv_images = [cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR) for image in traffic_lights]
+        traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
         
         #traffic_lights = np.asarray(traffic_lights, dtype=np.float32)
 
         #Get classification
-        #result = self.light_classifier.get_classification(traffic_lights)
-        result = self.light_classifier.get_classification([image])
+        #result = self.light_classifier.get_classification([image])
+        result = self.light_classifier.get_classification(traffic_lights)
 
         return result
 
