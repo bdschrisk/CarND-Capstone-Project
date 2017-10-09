@@ -4,7 +4,7 @@ from PIL import Image
 import os
 import time
 import tarfile
-MODELS_DIR=os.path.join(os.path.dirname(__file__),'include','model')
+MODELS_DIR=os.path.join(os.path.dirname(__file__),'include')
 
 
 def load_graph(graph_file):
@@ -34,7 +34,7 @@ def load_graph(graph_file):
 class TLDetection(object):
     def __init__(self):
         # load params
-        self.model_path= os.path.join(MODELS_DIR,'ssd_mobilenet_v1_coco_11_06_2017','frozen_inference_graph.pb')
+        self.model_path= os.path.join(MODELS_DIR,'ssd_inception_v2_coco_11_06_2017','frozen_inference_graph.pb')
         self.detection_graph,self.image_tensor, self.detection_boxes,self.detection_scores,self.detection_classes = load_graph(self.model_path)
 
     def to_image_coords(self,boxes, height, width):
