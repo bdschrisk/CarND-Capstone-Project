@@ -214,7 +214,6 @@ class TLDetector(object):
 
         #TODO 
         #image = np.asarray(image, dtype=np.float32)
-        cv_image = cv_image.astype(np.uint8)
         image = PIL.Image.fromarray(cv_image)
 
         traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
