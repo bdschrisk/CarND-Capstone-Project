@@ -1,7 +1,6 @@
 from yaw_controller import YawController
 from geometry_msgs.msg import PoseStamped, TwistStamped
 
-
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
@@ -12,6 +11,10 @@ class Controller(object):
         # TODO: Implement
         self.accel_limit = kwargs['accel_limit']
         self.decel_limit = kwargs['decel_limit']
+        self.vehicle_mass = kwargs['vehicle_mass']
+        self.fuel_capacity = kwargs['fuel_capacity']
+        self.brake_deadband = kwargs['brake_deadband']
+        self.wheel_radius = kwargs['wheel_radius']
         self.yaw_controller = YawController(kwargs['wheel_base'], kwargs['steer_ratio'],
                                             ONE_MPH, kwargs['max_lat_accel'],
                                             kwargs['max_steer_angle'])
@@ -36,5 +39,9 @@ class Controller(object):
         else:
             accel = max(self.decel_limit, accel)
             throttle_cmd = 0.0
-            brake_cmd = accel / self.decel_limit
+            # F=m*a,T=F*r
+            torque = self.vehicle_mass * accel * self.wheel_radius
+            brake_cmd = abs(torque)
+            #rospy.logerr("brake_cmd = %d", brake_cmd)
+
         return throttle_cmd, brake_cmd, steer_cmd

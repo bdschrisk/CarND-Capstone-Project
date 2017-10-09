@@ -104,11 +104,11 @@ class WaypointUpdater(object):
 
             dist, angle = self.get_next_target(self.base_waypoints.waypoints[wp_index])
 
-            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 30.:
+            if self.traffic_gt.lights[self.closest_traffic_light_wp].state == 0 and self.gap_till_traffic_light < 35.:
                 l_vel = 0.
                 a_vel = 0.
 
-            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 30.:
+            elif self.traffic_gt.lights[self.closest_traffic_light_wp].state == 1 and self.gap_till_traffic_light < 35.:
                 l_vel = self.current_linear_velocity / 2.
                 a_vel = 0.
 
