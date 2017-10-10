@@ -117,16 +117,20 @@ class TLDetection(object):
         width, height = cropped_image.size
         box_coords = self.to_image_coords(boxes, height, width)
         cropped_images = []
-        print(box_coords)
+        #print(box_coords)
         for box in box_coords:
             top,left,bottom,right = box
             traffic_light = cropped_image.crop(
                 (
-                   left,
-                    top,
-                    right,
-                    bottom
+                    int(left),
+                    int(top),
+                    int(right),
+                    int(bottom)
                 )
             )
+
+            #temp_light = np.asarray(traffic_light)
+            #traffic_light = temp_light.reshape((traffic_light.size[0], traffic_light.size[1], 3))
+            print("[TLDetection] -> Traffic light detected: " + str(traffic_light.size))
             cropped_images.append(traffic_light)
         return cropped_images

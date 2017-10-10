@@ -13,6 +13,7 @@ import tf
 import cv2
 import PIL
 import yaml
+import os
 
 from math import *
 from scipy import spatial
@@ -176,11 +177,10 @@ class TLDetector(object):
             rospy.logerr("Failed to find camera to map transform")
 
         #TODO Use tranform and rotation to calculate 2D position of light in image
+        point3d = np.array([point_in_world.x, point_in_world.y, point_in_world.z])
+        point2d = self.camera_model.project3dToPixel(point3d)
 
-        point = self.camera_model.project3dToPixel(point_in_world)
-
-        x = point(0)
-        y = point(1)
+        x, y = point2d
 
         return (x, y)
     
@@ -209,19 +209,14 @@ class TLDetector(object):
             self.camera_image.encoding = 'rgb8'
         
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
+        # Using detection network
+        #x, y = self.project_to_image_plane(light.pose.pose.position)
 
-        x, y = self.project_to_image_plane(light.pose.pose.position)
-
-        #TODO 
-        #image = np.asarray(image, dtype=np.float32)
         image = PIL.Image.fromarray(cv_image)
 
         traffic_lights = self.traffic_light_detector.detect_traffic_lights(image)
-        
-        #traffic_lights = np.asarray(traffic_lights, dtype=np.float32)
 
         # Get classification
-        #result = self.light_classifier.get_classification([image])
         result = self.light_classifier.get_classification(traffic_lights)
 
         return result
