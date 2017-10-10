@@ -5,6 +5,3 @@ devel
 
 profile.tmp
 /.vs
-ros/src/tl_detector/light_detection/test_traffic_ligh_detection.py
-ros/src/tl_detector/light_detection/include/test/image.jpg
-CarND-Capstone-Project.pyproj
