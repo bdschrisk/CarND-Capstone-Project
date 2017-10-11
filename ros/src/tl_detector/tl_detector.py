@@ -25,6 +25,7 @@ class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
 
+        self.state = None
         self.position = None
         self.orientation = None
         self.waypoints = None
@@ -126,7 +127,13 @@ class TLDetector(object):
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
-            light_wp = light_wp if state == TrafficLight.RED else -1
+            if state == TrafficLight.RED or state == TrafficLight.YELLOW:
+                light_wp = light_wp
+            elif state == TrafficLight.GREEN:
+                light_wp = -light_wp
+            else :
+                light_wp = 1000000
+
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
         else:
