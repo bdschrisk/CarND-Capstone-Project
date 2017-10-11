@@ -4,6 +4,8 @@ from PIL import Image
 import os
 import time
 import tarfile
+import rospy
+
 MODELS_DIR=os.path.join(os.path.dirname(__file__),'include')
 
 
@@ -36,6 +38,8 @@ class TLDetection(object):
         # load params
         self.model_path= os.path.join(MODELS_DIR,'ssd_mobilenet_v1_coco_11_06_2017','frozen_inference_graph.pb')
         self.detection_graph,self.image_tensor, self.detection_boxes,self.detection_scores,self.detection_classes = load_graph(self.model_path)
+        self.log_output = rospy.get_param("~tl_write_output")
+        rospy.loginfo("[TL Detection] -> Model loaded!")
 
     def to_image_coords(self,boxes, height, width):
         """
@@ -129,8 +133,14 @@ class TLDetection(object):
                 )
             )
 
-            #temp_light = np.asarray(traffic_light)
-            #traffic_light = temp_light.reshape((traffic_light.size[0], traffic_light.size[1], 3))
-            print("[TLDetection] -> Traffic light detected: " + str(traffic_light.size))
+            rospy.loginfo("[TLDetection] -> Traffic light(s) detected: " + str(traffic_light.size))
+            
+            if (self.log_output):
+                if not os.path.exists("./output/"):
+                    os.mkdir("./output/")
+
+                traffic_light.save("./output/{}.png".format(rospy.Time.now()))
+            
             cropped_images.append(traffic_light)
+        
         return cropped_images

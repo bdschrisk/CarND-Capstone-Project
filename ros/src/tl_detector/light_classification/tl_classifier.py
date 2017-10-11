@@ -1,7 +1,7 @@
 import os
 import rospy
 import numpy as np
-
+from math import *
 import threading as t
 import tensorflow as tf
 
@@ -16,7 +16,8 @@ class TLClassifier(object):
         self.classes = rospy.get_param("~tl_classes")
         self.values = rospy.get_param("~tl_values")
         self.weights_file = rospy.get_param("~tl_weights_file")
-        
+        self.max_detections = rospy.get_param("~tl_max_detections")
+
         with self.graph.as_default():
             self.model = KaNet(len(self.classes), (None, None, 3), 1.0, 0)
             self.model.load_weights(self.weights_file, by_name=True)
@@ -37,7 +38,9 @@ class TLClassifier(object):
         with self.graph.as_default():
             predictions = []
 
-            msize = len(images)
+            #msize = min(1, len(images)) # we only need one
+            msize = min(self.max_detections, len(images))
+
             for i in range(msize):
                 img = np.asarray(images[i])
                 rospy.loginfo("[TL Classifier] -> Input shape: " + str(img.shape))

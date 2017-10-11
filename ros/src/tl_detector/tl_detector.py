@@ -25,7 +25,8 @@ class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
 
-        self.pose = None
+        self.position = None
+        self.orientation = None
         self.waypoints = None
         self.camera_image = None
         self.lights = []
@@ -49,7 +50,7 @@ class TLDetector(object):
         self.config = yaml.load(config_string)
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
-
+        
         self.traffic_light_detector = TLDetection()
 
         self.bridge = CvBridge()
@@ -63,14 +64,15 @@ class TLDetector(object):
 
         self.camera_model = PinholeCameraModel()
 
-        sub7 = rospy.Subscriber('camera_info', CameraInfo, self.camera_cb)
+        sub7 = rospy.Subscriber('camera_info', CameraInfo, self.camera_cb, queue_size=1)
 
         self.stoplineKD = spatial.KDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        self.pose = msg.pose
+        self.position = msg.pose.position
+        self.orientation = msg.pose.orientation
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints.waypoints
@@ -109,7 +111,7 @@ class TLDetector(object):
         self.has_image = True
         self.camera_image = msg
 
-        rospy.loginfo("[TLDetector] -> processing input image...")
+        #rospy.loginfo("[TLDetector] -> processing input image...")
         light_wp, state = self.process_traffic_lights()
         rospy.loginfo("[TLDetector] -> image processed: waypoint= " + str(light_wp) + ", state=" + str(state))
 
@@ -218,7 +220,7 @@ class TLDetector(object):
 
         # Get classification
         result = self.light_classifier.get_classification(traffic_lights)
-
+        #result = self.light_classifier.get_classification([image])
         return result
 
     def process_traffic_lights(self):
@@ -233,28 +235,42 @@ class TLDetector(object):
         
         if (self._initialized):
             light = None
+            light_wp = -1
+            light_ahead = self.sensor_dist
+            tl_delta = 0.0
 
             # List of positions that correspond to the line to stop in front of for a given intersection
             stop_line_positions = self.config['stop_line_positions']
 
-            if (self.pose):
-                car_position = self.get_closest_waypoint(self.pose.position.x, self.pose.position.y)
-                rospy.loginfo("[TLDetector] -> car position wp index: " + str(car_position))
+            if (self.position):
+                car_position = self.get_closest_waypoint(self.position.x, self.position.y)
+                #rospy.loginfo("[TLDetector] -> car position wp index: " + str(car_position))
                 
                 car_pose = [self.waypoints[car_position].pose.pose.position.x, self.waypoints[car_position].pose.pose.position.y]
-                rospy.loginfo("[TLDetector] -> car pose: " + str(car_pose))
+                #rospy.loginfo("[TLDetector] -> car pose: " + str(car_pose))
                 tl_delta, light_wp = self.lightKD.query(car_pose, k = 1)
-                rospy.loginfo("[TLDetector] -> nearest TL wp index: " + str(light_wp) + ", distance: " + str(tl_delta) + "m")
+                
                 light = self.lights[light_wp]
-                # TODO: Check negative light locations relative to pose
-                if (tl_delta >= self.sensor_dist):
+                # Check negative light locations relative to pose
+                cur_q = (self.orientation.x, self.orientation.y, self.orientation.z, self.orientation.w)
+                _, _, cur_yaw = tf.transformations.euler_from_quaternion(cur_q)
+                light_ahead = ((light.pose.pose.position.x - self.position.x) * cos(cur_yaw) +
+                               (light.pose.pose.position.y - self.position.y) * sin(cur_yaw))
+                
+                if (tl_delta >= self.sensor_dist or light_ahead < 0.0):
                     light = None
             
-            if light:
-                rospy.loginfo("[TLDetector] -> approaching traffic light: " + str(light.state))
+            rospy.loginfo("[TLDetector] -> TL approaching: #" + str(light_wp) 
+                                + ", ahead: " + str(light_ahead) + "m, distance: " + str(tl_delta))
+            
+            if light:    
+
                 light_pose = [light.pose.pose.position.x, light.pose.pose.position.y]
                 stop_dist, light_wp = self.stoplineKD.query(light_pose, k = 1)
-                rospy.loginfo("[TLDetector] -> stop line point in: " + str(stop_dist) + "m")
+                
+                rospy.loginfo("[TLDetector] -> Stop line point in: " + str(stop_dist) + "m")
+                rospy.loginfo("[TLDetector] -> Detecting...")
+
                 state = self.get_light_state(light)
 
                 stop_point = [stop_line_positions[light_wp][0], stop_line_positions[light_wp][1]]
