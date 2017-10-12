@@ -6,6 +6,8 @@ from styx_msgs.msg import Lane, Waypoint, TrafficLight
 from std_msgs.msg import Int32
 from tf.transformations import euler_from_quaternion
 
+from scipy import spatial
+
 import copy
 import math
 import numpy as np
@@ -38,18 +40,6 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
-        ### Subscribers
-        # all waypoints of the track before and after the car
-        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
-
-        ### Publishers
-        # publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-
         ### Member variables
         self.base_waypoints = None
         self.final_waypoints = None
@@ -64,6 +54,19 @@ class WaypointUpdater(object):
         self.ignore_count = 0
         self.wp_len = 0
         self.car_state = CarState.STOP
+        self.waypointsKD = None
+
+        ### Subscribers
+        # all waypoints of the track before and after the car
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb)
+
+        ### Publishers
+        # publish a fixed number of waypoints ahead of the car starting with the first point ahead of the car
+        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         ## Main Loop    
         rate = rospy.Rate(2.0)
@@ -210,6 +213,15 @@ class WaypointUpdater(object):
         self.base_waypoints = waypoints
         # we only need the message once, unsubscribe after first receive
         self.base_waypoints_sub.unregister()
+
+        pointsarr = []
+        for i in range(len(self.base_waypoints.waypoints)):
+            pointsarr.append([self.base_waypoints.waypoints[i].pose.pose.position.x, 
+                              self.base_waypoints.waypoints[i].pose.pose.position.y])
+        
+        # initialize light KD tree
+        self.waypointsKD = spatial.cKDTree(np.asarray(pointsarr), leafsize=10)
+
         self.wp_len = len(waypoints.waypoints)
         self.speed_limit = waypoints.waypoints[self.wp_len/2].twist.twist.linear.x
 
@@ -268,17 +280,17 @@ class WaypointUpdater(object):
         self.traffic_wp = int(msg.data)
         if self.traffic_wp > self.wp_len:
             if self.light_state != TrafficLight.UNKNOWN:
-                self.light_change = True;
+                self.light_change = True
             self.light_state = TrafficLight.UNKNOWN
             self.light_wp = -1
         elif self.traffic_wp > 0:
             if self.light_state != TrafficLight.RED:
-                self.light_change = True;
+                self.light_change = True
             self.light_state = TrafficLight.RED
             self.light_wp = self.traffic_wp
         else:
             if self.light_state != TrafficLight.GREEN:
-                self.light_change = True;
+                self.light_change = True
             self.light_state = TrafficLight.GREEN
             self.light_wp = -self.traffic_wp
 
@@ -326,18 +338,10 @@ class WaypointUpdater(object):
         cur_o = self.orientation
         cur_q = (cur_o.x,cur_o.y,cur_o.z,cur_o.w)
         cur_roll, cur_pitch, cur_yaw = euler_from_quaternion(cur_q)
-
-        closest_dist = 999999.
-        closest_wp = None
-
+        
         wp_len = len(self.base_waypoints.waypoints)
-        for i in range(wp_len):
-            base_wp_x = self.base_waypoints.waypoints[i].pose.pose.position.x
-            base_wp_y = self.base_waypoints.waypoints[i].pose.pose.position.y
-            dist = math.sqrt(math.pow(cur_pos_x - base_wp_x, 2) + math.pow(cur_pos_y - base_wp_y, 2))
-            if dist < closest_dist:
-                closest_dist = dist
-                closest_wp = i
+
+        closest_dist, closest_wp = self.waypointsKD.query([cur_pos_x, cur_pos_y], k=1)
 
         #Check if waypoint is ahead of vehicle
         closest_wp_x = self.base_waypoints.waypoints[closest_wp].pose.pose.position.x

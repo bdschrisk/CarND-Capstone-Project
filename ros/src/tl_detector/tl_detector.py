@@ -33,6 +33,12 @@ class TLDetector(object):
         self.lights = []
         self._initialized = False
 
+        self.state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN
+        self.last_wp = -1
+        self.state_count = 0
+        self._models_initialized = False
+
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -51,23 +57,21 @@ class TLDetector(object):
         self.config = yaml.load(config_string)
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
+        self.stoplineKD = spatial.cKDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
         
-        self.traffic_light_detector = TLDetection()
-
         self.bridge = CvBridge()
+        
+        # Initialize models
+        self.traffic_light_detector = TLDetection()
         self.light_classifier = TLClassifier()
-        self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
-        self.last_wp = -1
-        self.state_count = 0
+        self._models_initialized = True
+
+        self.listener = tf.TransformListener()
 
         self.camera_model = PinholeCameraModel()
 
         sub7 = rospy.Subscriber('camera_info', CameraInfo, self.camera_cb, queue_size=1)
-
-        self.stoplineKD = spatial.cKDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
 
         rospy.spin()
 
@@ -152,9 +156,7 @@ class TLDetector(object):
 
         """
         
-        wpi = self.waypointsKD.query([point_x, point_y], k=1)[1]
-
-        return wpi
+        return self.waypointsKD.query([point_x, point_y], k=1)[1]
     
     def project_to_image_plane(self, point_in_world):
         """Project point from 3D world coordinates to 2D camera image location
@@ -209,6 +211,10 @@ class TLDetector(object):
             self.prev_light_loc = None
             return False
 
+        # Don't move until all systems are online
+        if (not self._models_initialized):
+            return TrafficLight.RED
+
         # Fix camera encoding to match model (from BGR to RGB)
         if hasattr(self.camera_image, 'encoding'):
             self.attribute = self.camera_image.encoding
@@ -227,7 +233,7 @@ class TLDetector(object):
 
         # Get classification
         result = self.light_classifier.get_classification(traffic_lights)
-        #result = self.light_classifier.get_classification([image])
+        
         return result
 
     def process_traffic_lights(self):
