@@ -67,7 +67,7 @@ class TLDetector(object):
 
         sub7 = rospy.Subscriber('camera_info', CameraInfo, self.camera_cb, queue_size=1)
 
-        self.stoplineKD = spatial.KDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
+        self.stoplineKD = spatial.cKDTree(np.asarray(self.config['stop_line_positions']), leafsize=10)
 
         rospy.spin()
 
@@ -83,7 +83,7 @@ class TLDetector(object):
             pointsarr.append([self.waypoints[i].pose.pose.position.x, self.waypoints[i].pose.pose.position.y])
         
         # initialize light KD tree
-        self.waypointsKD = spatial.KDTree(np.asarray(pointsarr), leafsize=10)
+        self.waypointsKD = spatial.cKDTree(np.asarray(pointsarr), leafsize=10)
         self.base_waypoints_sub.unregister()
 
         self._initialized = True
@@ -96,7 +96,7 @@ class TLDetector(object):
             lightsarr.append([self.lights[i].pose.pose.position.x, self.lights[i].pose.pose.position.y])
         
         # initialize light KD tree
-        self.lightKD = spatial.KDTree(np.asarray(lightsarr), leafsize=10)
+        self.lightKD = spatial.cKDTree(np.asarray(lightsarr), leafsize=10)
 
     def camera_cb(self, msg):
         self.camera_model.fromCameraInfo(msg)
