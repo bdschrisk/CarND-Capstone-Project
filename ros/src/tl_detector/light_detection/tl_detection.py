@@ -4,7 +4,7 @@ from PIL import Image
 import os
 import time
 import tarfile
-import rospy
+#import rospy
 
 MODELS_DIR=os.path.join(os.path.dirname(__file__),'include')
 
@@ -38,8 +38,10 @@ class TLDetection(object):
         # load params
         self.model_path= os.path.join(MODELS_DIR,'ssd_mobilenet_v1_coco_11_06_2017','frozen_inference_graph.pb')
         self.detection_graph,self.image_tensor, self.detection_boxes,self.detection_scores,self.detection_classes = load_graph(self.model_path)
-        self.log_output = rospy.get_param("~tl_write_output")
-        rospy.loginfo("[TL Detection] -> Model loaded!")
+        #self.log_output = rospy.get_param("~tl_write_output")
+        #rospy.loginfo("[TL Detection] -> Model loaded!")
+        self.sess = tf.Session(graph=self.detection_graph) 
+        #rospy.loginfo("[TL Detection] -> Session created!")
 
     def to_image_coords(self,boxes, height, width):
         """
@@ -78,34 +80,33 @@ class TLDetection(object):
                image_np,
                runs=1):
   
-        with tf.Session(graph=self.detection_graph) as sess:                
-            # Actual detection.
         
-            times = np.zeros(runs)
-            for i in range(runs):
-                t0 = time.time()
-                (boxes, scores, classes) = sess.run([detection_boxes, detection_scores, detection_classes], 
-                                                    feed_dict={image_tensor: image_np})
-                t1 = time.time()
-                times[i] = (t1 - t0) * 1000
+        times = np.zeros(runs)
+        for i in range(runs):
+            t0 = time.time()
+            (boxes, scores, classes) = self.sess.run([detection_boxes, detection_scores, detection_classes], 
+                                                feed_dict={image_tensor: image_np})
+            t1 = time.time()
+            times[i] = (t1 - t0) * 1000
 
-            # Remove unnecessary dimensions
-            boxes = np.squeeze(boxes)
-            scores = np.squeeze(scores)
-            classes = np.squeeze(classes)
+        # Remove unnecessary dimensions
+        boxes = np.squeeze(boxes)
+        scores = np.squeeze(scores)
+        classes = np.squeeze(classes)
 
         return boxes, scores, classes, times
 
         
     def detect_traffic_lights(self,image):
-        width = image.size[0]
-        height = image.size[1]
-        cropped_image = image.crop(
+        smaller_image = image.resize((224,128), Image.ANTIALIAS)
+        width =  smaller_image.size[0]
+        height =  smaller_image.size[1]
+        cropped_image = smaller_image.crop(
             (
                 0,
-                100,
+                25,
                 width,
-                height-150
+                height-25
             )
         )
         image_np = np.expand_dims(np.asarray(cropped_image, dtype=np.uint8), 0)
@@ -133,13 +134,13 @@ class TLDetection(object):
                 )
             )
 
-            rospy.loginfo("[TLDetection] -> Traffic light(s) detected: " + str(traffic_light.size))
+            #rospy.loginfo("[TLDetection] -> Traffic light(s) detected: " + str(traffic_light.size))
             
-            if (self.log_output):
-                if not os.path.exists("./output/"):
-                    os.mkdir("./output/")
+            #if (self.log_output):
+                #if not os.path.exists("./output/"):
+                 #   os.mkdir("./output/")
 
-                traffic_light.save("./output/{}.png".format(rospy.Time.now()))
+                #traffic_light.save("./output/{}.png".format(rospy.Time.now()))
             
             cropped_images.append(traffic_light)
         
