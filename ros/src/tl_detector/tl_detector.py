@@ -19,7 +19,7 @@ from math import *
 from scipy import spatial
 import numpy as np
 
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD = 1
 
 class TLDetector(object):
     def __init__(self):
@@ -32,6 +32,7 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
         self._initialized = False
+        self.ignore_count = 0
 
         self.state = TrafficLight.UNKNOWN
         self.last_state = TrafficLight.UNKNOWN
@@ -113,6 +114,10 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        self.ignore_count += 1
+        if self.ignore_count % 3 != 0:
+            return
+
         self.has_image = True
         self.camera_image = msg
 
@@ -288,6 +293,8 @@ class TLDetector(object):
 
                 stop_point = [stop_line_positions[light_wp][0], stop_line_positions[light_wp][1]]
                 light_wp = self.get_closest_waypoint(stop_point[0], stop_point[1])
+                if light_wp < car_position:
+                    return -1, TrafficLight.UNKNOWN
 
                 return light_wp, state
         

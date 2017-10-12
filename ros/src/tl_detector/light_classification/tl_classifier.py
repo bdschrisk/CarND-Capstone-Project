@@ -4,6 +4,7 @@ import numpy as np
 from math import *
 import threading as t
 import tensorflow as tf
+import time
 
 from styx_msgs.msg import TrafficLight
 from include.model.KaNet import KaNet
@@ -37,22 +38,31 @@ class TLClassifier(object):
 
         with self.graph.as_default():
             predictions = []
-
-            #msize = min(1, len(images)) # we only need one
+            
+            
             msize = min(self.max_detections, len(images))
+            times = np.zeros(msize)
 
             for i in range(msize):
+                t0 = time.time()
                 img = np.asarray(images[i])
+
                 rospy.loginfo("[TL Classifier] -> Input shape: " + str(img.shape))
+
                 pred = self.model.predict(img[None, :, :, 0:3], batch_size=1)[0]
+
                 rospy.loginfo("[TL Classifier] -> Prediction: " + str(pred))
+
                 predictions.append(pred)
+                
+                t1 = time.time()
+                times[i] = (t1 - t0) * 1000
             
             predictions = np.sum(predictions, axis=0, keepdims=True)
             pred_idx = np.argmax(predictions)
             
             self.state = self.map_label(pred_idx)
-            rospy.loginfo("[TL Classifier] -> TL Predicted: " + self.classes[pred_idx])
+            rospy.loginfo("[TL Classifier] -> TL Predicted: " + self.classes[pred_idx] + ", in " + str(np.sum(times)) + "ms")
 
             self.busy = False
             

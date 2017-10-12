@@ -40,6 +40,8 @@ class TLDetection(object):
         self.detection_graph,self.image_tensor, self.detection_boxes,self.detection_scores,self.detection_classes = load_graph(self.model_path)
         self.log_output = rospy.get_param("~tl_write_output")
         rospy.loginfo("[TL Detection] -> Model loaded!")
+        self.sess = tf.Session(graph=self.detection_graph) 
+        rospy.loginfo("[TL Detection] -> Session created!")
 
     def to_image_coords(self,boxes, height, width):
         """
@@ -78,38 +80,30 @@ class TLDetection(object):
                image_np,
                runs=1):
   
-        with tf.Session(graph=self.detection_graph) as sess:                
-            # Actual detection.
         
-            times = np.zeros(runs)
-            for i in range(runs):
-                t0 = time.time()
-                (boxes, scores, classes) = sess.run([detection_boxes, detection_scores, detection_classes], 
-                                                    feed_dict={image_tensor: image_np})
-                t1 = time.time()
-                times[i] = (t1 - t0) * 1000
+        times = np.zeros(runs)
+        for i in range(runs):
+            t0 = time.time()
+            (boxes, scores, classes) = self.sess.run([detection_boxes, detection_scores, detection_classes], 
+                                                feed_dict={image_tensor: image_np})
+            t1 = time.time()
+            times[i] = (t1 - t0) * 1000
 
-            # Remove unnecessary dimensions
-            boxes = np.squeeze(boxes)
-            scores = np.squeeze(scores)
-            classes = np.squeeze(classes)
+        # Remove unnecessary dimensions
+        boxes = np.squeeze(boxes)
+        scores = np.squeeze(scores)
+        classes = np.squeeze(classes)
 
         return boxes, scores, classes, times
 
         
-    def detect_traffic_lights(self,image):
-        width = image.size[0]
-        height = image.size[1]
-        cropped_image = image.crop(
-            (
-                0,
-                100,
-                width,
-                height-150
-            )
-        )
-        image_np = np.expand_dims(np.asarray(cropped_image, dtype=np.uint8), 0)
-        boxes,scores,classes,_ = self.detect_boxes(self.image_tensor,
+    def detect_traffic_lights(self, image):
+        width, height = image.size
+        factor = 224.0 / width
+        smaller_image = image.resize((int(width * factor), int(height * factor)), Image.ANTIALIAS)
+        
+        image_np = np.expand_dims(np.asarray(smaller_image, dtype=np.uint8), 0)
+        boxes,scores,classes,times = self.detect_boxes(self.image_tensor,
                                       self.detection_boxes,
                                       self.detection_scores,
                                       self.detection_classes,
@@ -118,13 +112,13 @@ class TLDetection(object):
         traffic_lights_class_id=10
         # Filter boxes with a confidence score less than `confidence_cutoff`
         boxes, scores,classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes,[traffic_lights_class_id])
-        width, height = cropped_image.size
+        
         box_coords = self.to_image_coords(boxes, height, width)
         cropped_images = []
-        #print(box_coords)
+        
         for box in box_coords:
             top,left,bottom,right = box
-            traffic_light = cropped_image.crop(
+            traffic_light = image.crop(
                 (
                     int(left),
                     int(top),
@@ -133,8 +127,6 @@ class TLDetection(object):
                 )
             )
 
-            rospy.loginfo("[TLDetection] -> Traffic light(s) detected: " + str(traffic_light.size))
-            
             if (self.log_output):
                 if not os.path.exists("./output/"):
                     os.mkdir("./output/")
@@ -143,4 +135,7 @@ class TLDetection(object):
             
             cropped_images.append(traffic_light)
         
+        rospy.loginfo("[TLDetection] -> Traffic light(s) detected: " + str(len(cropped_images)) 
+                      + ", in " + str(np.sum(times)) + "ms")
+
         return cropped_images

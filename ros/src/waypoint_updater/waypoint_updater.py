@@ -133,7 +133,7 @@ class WaypointUpdater(object):
                 and cur_vel < self.speed_limit * 0.2:
                 self.car_state = CarState.ACCEL
                 self.ignore_count = 8
-                rospy.loginfo("phase1:ACCEL-TURN BLUE")
+                rospy.loginfo("phase1:ACCEL-TURN GREEN")
             elif self.light_change == True and self.light_state == TrafficLight.RED \
                 and dist > 12.0:
                 self.car_state = CarState.DECEL
