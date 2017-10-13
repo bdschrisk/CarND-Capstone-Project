@@ -37,7 +37,7 @@ The three core components of any good robot are the following:
 Using information from the vehicle's current pose as well as sensing the environment through raw camera data, we are able to detect the presence of traffic lights and 
 perform recognition to determine their current state.  This sensing informs downstream ROS nodes whether the vehicle should drive, stop or slow down.
 
-Sensing is performed by two independent models, one for detection of objects, in this case - traffic lights.  The other model takes the output of the first, and 
+Sensing is performed by two independent models, one for the ![detection of objects](https://github.com/bdschrisk/CarND-Capstone-Project/perception/Traffic-Light-Detection.ipynb), in this case - traffic lights.  The other model takes the output of the first, and 
 classifies the traffic lights according to their state, e.g. green, yellow or red.  This two-prongued approach to recognition provides a robust detection model in case of 
 failure, as well as being "hot-swappable" when improved models are available.
 
@@ -50,6 +50,8 @@ of target variables.  It is also extremely fast for inference - a necessary requ
 
 **Training**
 Training the KaNet model is performed like any other multi-class classification problem, using 1 of K encoding and cross-entropy loss.
+*(For more information on training the KaNet model, ![see the notebook](https://github.com/bdschrisk/CarND-Capstone-Project/perception/TL-Classifier-KaNet.ipynb))*
+
 
 ### Installation 
 
