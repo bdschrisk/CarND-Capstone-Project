@@ -41,7 +41,7 @@ Sensing is performed by two independent models, one for the [detection of object
 classifies the traffic lights according to their state, e.g. green, yellow or red.  This two-prongued approach to recognition provides a robust detection model in case of 
 failure, as well as being "hot-swappable" when improved models are available.
 
-The detection model, a MobileNet Single-Shot-Detector, is also able to detect other obstacles on the road such as other cars, bikes, pedestrians, etc.
+The detection module uses the MobileNet Single-Shot-Detector from   [tensorflow's model-zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md). This model proved sufficently accurate, within the given timing constraints. A full evaluation and comparison to other models can be found in [this notebook](https://github.com/fera0013/TrafficLightDetection/blob/master/Traffic-Light-Detection.ipynb).
 
 Classification of traffic lights is performed by a KaNet deep neural network.  The KaNet is unique because it allows additional independent learning through layer divergence 
 of target variables.  It is also extremely fast for inference - a necessary requirement for real-time recognition.
