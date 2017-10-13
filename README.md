@@ -1,11 +1,11 @@
 # Capstone Project | Team OSCAR
 
 ### Team Members:
- - Chris Kalle ([bdschrisk](https://github.com/bdschrisk)) | Team Lead, Perception
- - Ralph Fehrer ([fera0013](https://github.com/fera0013)) | Perception
- - Hideto Kimuta ([HidetoKimura](https://github.com/HidetoKimura)) | Systems integration
- - Carlos Arreaza ([carreaza](https://github.com/carreaza)) | Behavioral planning
- - Moe Elsadig ([moe-elsadig](https://github.com/moe-elsadig)) | Behavioral planning
+ - Chris Kalle ([bdschrisk](https://github.com/bdschrisk)) | Team Lead, Perception | Email: ontologia@chriskalle.com
+ - Ralph Fehrer ([fera0013](https://github.com/fera0013)) | Perception | Email: ralphfehrer@gmail.com
+ - Hideto Kimuta ([HidetoKimura](https://github.com/HidetoKimura)) | Systems integration | Email: hidecchim2r@gmail.com
+ - Carlos Arreaza ([carreaza](https://github.com/carreaza)) | Behavioral planning | Email: arreaza.c@gmail.com
+ - Moe Elsadig ([moe-elsadig](https://github.com/moe-elsadig)) | Behavioral planning | Email: m.da7th@gmail.com
 
 
 This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car.
