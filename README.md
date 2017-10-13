@@ -32,6 +32,24 @@ The three core components of any good robot are the following:
 **ROS Node Architecture**
 ![Node architecture](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/docs/final-project-ros-graph-v2.png)
 
+### Node Details
+#### Traffic Light Recognition
+Using information from the vehicle's current pose as well as sensing the environment through raw camera data, we are able to detect the presence of traffic lights and 
+perform recognition to determine their current state.  This sensing informs downstream ROS nodes whether the vehicle should drive, stop or slow down.
+
+Sensing is performed by two independent models, one for detection of objects, in this case - traffic lights.  The other model takes the output of the first, and 
+classifies the traffic lights according to their state, e.g. green, yellow or red.  This two-prongued approach to recognition provides a robust detection model in case of 
+failure, as well as being "hot-swappable" when improved models are available.
+
+The detection model, a MobileNet Single-Shot-Detector, is also able to detect other obstacles on the road such as other cars, bikes, pedestrians, etc.
+
+Classification of traffic lights is performed by a KaNet deep neural network.  The KaNet is unique because it allows additional independent learning through layer divergence 
+of target variables.  It is also extremely fast for inference - a necessary requirement for real-time recognition.
+
+![KaNet model](https://github.com/bdschrisk/CarND-Capstone-Project/raw/master/imgs/kanet-model.png)
+
+**Training**
+Training the KaNet model is performed like any other multi-class classification problem, using 1 of K encoding and cross-entropy loss.
 
 ### Installation 
 
